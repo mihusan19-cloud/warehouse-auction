@@ -3,11 +3,26 @@ const ROUTES = new Set(['home', 'auction', 'encyclopedia', 'showroom', 'achievem
 export function createRouter({ onRouteChange } = {}) {
   const pages = [...document.querySelectorAll('[data-page]')];
 
+  function focusAppContent() {
+    const activeElement = document.activeElement;
+    const isEditing = activeElement && (
+      activeElement.tagName === 'INPUT' ||
+      activeElement.tagName === 'TEXTAREA' ||
+      activeElement.tagName === 'SELECT' ||
+      activeElement.isContentEditable ||
+      activeElement.closest('input, textarea, select, [contenteditable="true"], [contenteditable=""]')
+    );
+
+    if (!isEditing) {
+      document.querySelector('#app-content')?.focus({ preventScroll: true });
+    }
+  }
+
   function go(route, { updateHash = true } = {}) {
     const target = ROUTES.has(route) ? route : 'home';
     pages.forEach((page) => page.classList.toggle('is-active', page.dataset.page === target));
     if (updateHash && window.location.hash !== `#${target}`) { window.location.hash = target; return; }
-    document.querySelector('#app-content')?.focus({ preventScroll: true });
+    focusAppContent();
     onRouteChange?.(target);
   }
 

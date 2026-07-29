@@ -30,7 +30,7 @@ export function openFirstNameDialog(profile, onProfileChange) {
   const modal = document.querySelector('#player-name-modal'); const form = document.querySelector('#player-name-form'); const input = document.querySelector('#onboarding-name-input'); const startButton = document.querySelector('#onboarding-start-button');
   modal.hidden = false;
   let completed = false;
-  const complete = () => { if (completed) return; const name = cleanName(input.value); if (!name) { input.focus(); return; } completed = true; profile.name = name; profile.hasChosenName = true; modal.hidden = true; onProfileChange(profile); startButton.removeEventListener('click', complete); input.removeEventListener('keydown', handleKeydown); playSound('reveal'); };
+  const complete = () => { if (completed) return; const name = cleanName(input.value); if (!name) { window.requestAnimationFrame(() => input.focus()); return; } completed = true; profile.name = name; profile.hasChosenName = true; modal.hidden = true; onProfileChange(profile); startButton.removeEventListener('click', complete); input.removeEventListener('keydown', handleKeydown); playSound('reveal'); };
   const handleKeydown = (event) => { if (event.key === 'Enter') { event.preventDefault(); complete(); } };
   startButton.addEventListener('click', complete); input.addEventListener('keydown', handleKeydown);
   window.requestAnimationFrame(() => input.focus());
