@@ -1,0 +1,11 @@
+{
+  "name": "倉庫盲盒競標 Warehouse Auction",
+  "short_name": "倉庫競標",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#101426",
+  "theme_color": "#101426",
+  "lang": "zh-Hant",
+  "description": "完全離線可玩的倉庫盲盒競標遊戲",
+  "icons": [{ "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='36' fill='%23101426'/%3E%3Cpath d='M35 72h122v84H35z' fill='%23ffc846'/%3E%3Cpath d='M29 62h134v20H29z' fill='%2354e1e8'/%3E%3Cpath d='M80 90h32v48H80z' fill='%23101426'/%3E%3C/svg%3E", "sizes": "192x192", "type": "image/svg+xml" }]
+}

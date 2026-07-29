@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#101426" />
+    <meta name="description" content="倉庫盲盒競標 — Warehouse Auction" />
+    <title>倉庫盲盒競標</title>
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/home.css" />
+    <link rel="stylesheet" href="css/game.css" />
+    <link rel="stylesheet" href="css/encyclopedia.css" />
+    <link rel="stylesheet" href="css/showroom.css" />
+    <link rel="stylesheet" href="css/animation.css" />
+    <link rel="stylesheet" href="css/popup.css" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="css/mobile.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <button class="brand" type="button" data-route="home" aria-label="回到首頁">
+          <span class="brand-mark">W</span>
+          <span><strong>WAREHOUSE</strong><small>AUCTION</small></span>
+        </button>
+        <div class="player-summary" aria-label="玩家資產">
+          <span class="player-avatar" aria-hidden="true">P</span>
+          <span class="player-copy"><strong id="player-name">競標新手</strong><small>資產</small></span>
+          <strong class="wallet">$<span id="player-money">1,000,000</span></strong>
+        </div>
+      </header>
+
+      <main id="app-content" tabindex="-1">
+        <section class="page is-active" data-page="home">
+          <div class="hero-card">
+            <div class="hero-light"></div>
+            <p class="eyebrow">UNKNOWN VALUE · ONE CHANCE</p>
+            <h1>倉庫盲盒競標</h1>
+            <p class="hero-subtitle">每扇鐵門後，都藏著下一個傳說。</p>
+            <div class="warehouse-scene" aria-hidden="true">
+              <div class="crane-hook"></div><div class="crate crate-a"></div><div class="crate crate-b"></div><div class="crate crate-c"></div>
+            </div>
+            <button class="button button-primary button-large" type="button" data-route="auction"><span>▶</span> 開始競標</button><button id="rules-button" class="hero-rules-button" type="button">玩法說明</button>
+          </div>
+
+          <section class="quick-menu" aria-label="遊戲功能">
+            <button class="menu-card" type="button" data-route="encyclopedia"><span class="menu-icon">▦</span><strong>圖鑑</strong><small>探索所有寶物</small></button>
+            <button class="menu-card" type="button" data-route="showroom"><span class="menu-icon">♜</span><strong>展示館</strong><small>陳列珍藏品</small></button>
+            <button class="menu-card" type="button" data-route="achievements"><span class="menu-icon">★</span><strong>成就</strong><small>留下競標傳說</small></button>
+            <button class="menu-card" type="button" data-route="settings"><span class="menu-icon">⚙</span><strong>設定</strong><small>調整遊戲偏好</small></button>
+          </section>
+        </section>
+
+        <section class="page auction-page" data-page="auction">
+          <div class="auction-header"><div><p class="eyebrow">WAREHOUSE #<span id="warehouse-id">----</span></p><h2>本輪倉庫情報</h2></div><div class="auction-header-actions"><button id="reset-auction-button" class="reset-auction-button" type="button">重製倉庫</button><div class="round-chip">第 <strong id="round-number">1</strong> / 5 回合</div></div></div>
+          <div class="auction-layout">
+            <aside class="clue-panel panel"><div class="panel-heading"><span>◈</span><div><small>本回合情報</small><h3 id="clue-title">正在解鎖情報…</h3></div></div><p id="clue-description" class="clue-description"></p><div id="clue-item-card" class="clue-item-card"></div><div id="clue-history" class="clue-history"></div><p class="clue-note">所有情報均為真實資訊。第 4 回合不提供新情報。</p></aside>
+            <section class="warehouse-panel panel"><div class="warehouse-toolbar"><span>倉庫平面圖</span><small id="warehouse-item-count">0 件物品</small><button id="auction-catalog-button" class="mini-catalog-button" type="button">小圖鑑</button></div><div id="warehouse-grid" class="warehouse-grid" aria-label="神秘倉庫物品格子"></div><p class="warehouse-hint">灰色輪廓代表未知物品；取得資訊後會顯示更多細節。點選物品可查看可能候選。</p></section>
+            <aside class="round-panel panel"><p class="eyebrow">THINKING TIME</p><div id="round-timer" class="round-timer">01:00</div><p id="auction-status" class="timer-label">查看情報後，提交本回合唯一出價。</p><div id="bidders-list" class="bidders-list" aria-label="本回合競標者名單"></div><div id="bid-history" class="bid-history" aria-label="歷史出價紀錄"></div></aside>
+          </div>
+          <section class="bid-panel panel"><div class="bid-copy"><small>本回合出價</small><strong id="bid-minimum">可輸入 0 放棄競標</strong></div><label class="bid-input-wrap" for="bid-input">$<input id="bid-input" type="text" inputmode="numeric" autocomplete="off" value="0" aria-label="本回合出價" /></label><button id="bid-submit-button" class="button button-primary" type="button">鎖定出價</button><button id="next-round-button" class="button button-secondary" type="button" hidden>下一回合</button><button id="new-warehouse-button" class="text-button" type="button" hidden>前往下一個倉庫</button></section>
+        </section>
+        <section class="page encyclopedia-page" data-page="encyclopedia">
+          <div class="encyclopedia-heading"><div><p class="eyebrow">ALL ITEMS DISCOVERED</p><h2>倉庫圖鑑</h2><p>所有物品均已公開。已取得的物品會標示在卡片上。</p></div><div class="catalog-count"><strong id="catalog-visible-count">0</strong><small>/ 250 種</small></div></div>
+          <div class="catalog-controls panel"><label class="catalog-search">⌕<input id="catalog-search" type="search" placeholder="搜尋名稱、系列或描述" /></label><label>品質<div id="catalog-quality" class="catalog-custom-select"></div></label><label>收藏<div id="catalog-collection" class="catalog-custom-select"></div></label><label>排序<div id="catalog-sort" class="catalog-custom-select"></div></label></div>
+          <div id="catalog-grid" class="catalog-grid" aria-live="polite"></div>
+        </section>
+        <section class="page showroom-page" data-page="showroom">
+          <div class="showroom-heading"><div><p class="eyebrow">PRIVATE COLLECTION</p><h2>展示館</h2><p>展示中的收藏品會持續產生收益。</p></div><div class="showroom-stats"><div><small>展示數</small><strong><span id="display-count">0</span> / 25</strong></div><div><small>每小時收益</small><strong id="hourly-income">$0</strong></div></div></div>
+          <div id="offline-income-notice" class="offline-income-notice" hidden></div>
+          <section class="showcase-section panel"><div class="section-title"><div><small>EXHIBITED ITEMS</small><h3>正在展示</h3></div><p>下架後才可出售</p></div><div id="display-grid" class="display-grid"></div></section>
+          <section class="collection-section panel"><div class="section-title"><div><small>YOUR INVENTORY</small><h3>收藏背包</h3></div><button id="sell-selected-button" class="button button-secondary" type="button" disabled>出售選取物品</button></div><p class="collection-help">可一次選取多件未展示物品出售；展示中物品請先下架。</p><div id="collection-grid" class="collection-grid"></div></section>
+        </section>
+        <section class="page achievements-page" data-page="achievements"><p class="eyebrow">YOUR MILESTONES</p><h2>成就</h2><p class="achievements-intro">完成競標、收藏與展示，留下你的倉庫傳說。</p><div id="achievements-grid" class="achievements-grid"></div></section>
+        <section class="page settings-page" data-page="settings">
+          <p class="eyebrow">PLAYER &amp; DATA</p><h2>設定</h2><div class="settings-grid"><section class="settings-card panel"><h3>玩家名稱</h3><p>首次設定免費；之後修改需支付 <strong id="name-change-cost">$5,000</strong>。</p><div class="settings-inline"><input id="settings-name-input" maxlength="16" placeholder="輸入玩家名稱" /><button id="save-name-button" class="button button-primary" type="button">儲存名稱</button></div></section><section class="settings-card panel"><h3>音效</h3><p>使用瀏覽器合成音效，不需下載任何音檔。</p><label class="switch-row"><input id="sound-enabled-input" type="checkbox" /><span>啟用遊戲音效</span></label></section><section class="settings-card panel"><h3>存檔管理</h3><p>匯出包含資產、收藏、展示品與設定的 JSON 存檔。</p><div class="settings-inline"><button id="export-save-button" class="button button-secondary" type="button">匯出存檔</button><label class="button button-secondary import-button">匯入存檔<input id="import-save-input" type="file" accept="application/json" /></label></div><small id="settings-feedback" class="settings-feedback"></small></section><section class="settings-card panel danger-settings"><h3>資產重製</h3><p>將目前資產恢復為初始金額 $1,000,000，不會刪除收藏。</p><button id="reset-money-button" class="button button-danger" type="button">重製玩家資產</button></section></div>
+        </section>
+      </main>
+    </div>
+    <div id="player-name-modal" class="modal-layer" hidden><div id="player-name-form" class="name-modal" role="dialog" aria-modal="true" aria-labelledby="onboarding-title"><p class="eyebrow">WELCOME, BIDDER</p><h2 id="onboarding-title">你的競標者名稱是？</h2><p>這是你第一次踏入競標場。請先設定名稱。</p><input id="onboarding-name-input" type="text" maxlength="16" placeholder="最多 16 個字" autocomplete="off" /><button id="onboarding-start-button" class="button button-primary" type="button">開始競標</button></div></div>
+    <div id="rules-modal" class="modal-layer" hidden><section class="rules-modal"><button id="rules-close-button" type="button">×</button><p class="eyebrow">HOW TO PLAY</p><h2>倉庫盲盒競標玩法</h2><ol><li>每局有 5 回合，每回合可出價一次；輸入 0 可放棄。</li><li>AI 依公開線索與你上一回合出價做判斷。</li><li>第 1–4 回合若最高價超過第二高價指定倍率，立即結標。</li><li>第 5 回合起最高價得標；最高價平手時進第 6 回合。</li><li>得標後取得倉庫全部物品，可展示或出售。</li></ol></section></div>
+    <noscript>此遊戲需要啟用 JavaScript 才能運作。</noscript>
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>

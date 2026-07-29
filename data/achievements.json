@@ -1,0 +1,15 @@
+{
+  "achievements": [
+    { "id": "first-auction", "name": "初入競標場", "description": "開始 1 次倉庫競標。", "type": "auctions", "target": 1, "icon": "⚑" },
+    { "id": "first-win", "name": "一錘定音", "description": "成功得標 1 個倉庫。", "type": "wins", "target": 1, "icon": "🏆" },
+    { "id": "collector", "name": "初級收藏家", "description": "累積取得 10 件收藏品。", "type": "collection", "target": 10, "icon": "◈" },
+    { "id": "curator", "name": "策展新星", "description": "同時展示 5 件收藏品。", "type": "displayed", "target": 5, "icon": "♜" },
+    { "id": "millionaire", "name": "億萬富翁", "description": "持有資產達 $1,000,000,000。", "type": "money", "target": 1000000000, "icon": "◆" },
+    { "id": "auction-master", "name": "競標大師", "description": "成功得標 25 個倉庫。", "type": "wins", "target": 25, "icon": "♛" },
+    { "id": "full-gallery", "name": "滿室珍寶", "description": "同時展示 25 件收藏品。", "type": "displayed", "target": 25, "icon": "🏛️" },
+    { "id": "vault-keeper", "name": "私人金庫", "description": "累積取得 250 件收藏品。", "type": "collection", "target": 250, "icon": "🔐" },
+    { "id": "legend-hunter", "name": "傳說獵人", "description": "收藏 15 件傳說品質物品。", "type": "quality:傳說", "target": 15, "icon": "🔥" },
+    { "id": "myth-seeker", "name": "神話尋覓者", "description": "收藏 5 件神話品質物品。", "type": "quality:神話", "target": 5, "icon": "🌌" },
+    { "id": "complete-catalog", "name": "萬物典藏", "description": "取得全部 250 種不同物品。", "type": "uniqueCollection", "target": 250, "icon": "👑" }
+  ]
+}
