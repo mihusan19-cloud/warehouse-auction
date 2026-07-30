@@ -28,7 +28,14 @@ export async function createShowroom({ profile, onProfileChange }) {
     document.querySelector('#display-count').textContent = String(displayed.length);
     document.querySelector('#hourly-income').textContent = money(hourlyDisplayIncome(entries, qualityMap, config.displayMultiplier));
     displayGrid.replaceChildren(...(displayed.length ? displayed.map((entry) => itemCard(entry, { display: true })) : [Object.assign(document.createElement('p'), { className: 'empty-collection', textContent: '尚未展示物品。從收藏背包選擇物品展示吧！' })]));
-    collectionGrid.replaceChildren(...(stored.length ? stored.map((entry) => { const card = itemCard(entry); const check = document.createElement('label'); check.className = 'sell-check'; check.innerHTML = `<input type="checkbox" value="${entry.instanceId}" ${selected.has(entry.instanceId) ? 'checked' : ''} />出售`; card.prepend(check); return card; }) : [Object.assign(document.createElement('p'), { className: 'empty-collection', textContent: '背包目前沒有未展示的收藏品。' })]));
+    collectionGrid.replaceChildren(...(stored.length ? stored.map((entry) => {
+        const card = itemCard(entry);
+        const label = document.createElement('label');
+        label.className = 'sell-check';
+        label.innerHTML = `<input type="checkbox" value="${entry.instanceId}" ${selected.has(entry.instanceId) ? 'checked' : ''} />出售`;
+        card.prepend(label);
+        return card;
+    }) : [Object.assign(document.createElement('p'), { className: 'empty-collection', textContent: '背包目前沒有未展示的收藏品。' })]));
     sellButton.disabled = selected.size === 0;
   }
   function handleClick(event) {
