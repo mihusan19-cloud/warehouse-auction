@@ -13,3 +13,14 @@ button { font: inherit; }
 .page { display: none; animation: page-in .28s ease both; }.page.is-active { display: block; } @keyframes page-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 .button { border: 0; border-radius: 14px; padding: 13px 20px; cursor: pointer; color: #101426; font-weight: 900; letter-spacing: .04em; transition: transform .16s ease, filter .16s ease; }.button:hover { filter: brightness(1.08); transform: translateY(-2px); }.button:active { transform: translateY(1px); }.button-primary { background: linear-gradient(135deg, #ffe67b, var(--gold) 52%, var(--gold-deep)); box-shadow: 0 7px 0 #a85417, 0 14px 24px rgba(232,137,35,.28); }.button-secondary { margin-top: 14px; color: var(--text); background: var(--panel-light); border: 1px solid var(--line); }
 .placeholder-page { min-height: 58vh; padding: 60px 24px; border: 1px solid var(--line); border-radius: 28px; text-align: center; background: linear-gradient(145deg, rgba(35,45,75,.88), rgba(18,23,42,.88)); box-shadow: var(--shadow); }.placeholder-page h2 { margin: 6px 0 8px; font-size: clamp(1.55rem, 4vw, 2.3rem); }.placeholder-page p:not(.eyebrow) { color: var(--muted); }.placeholder-icon { display: grid; place-items: center; width: 68px; height: 68px; margin: 0 auto 18px; border: 1px solid rgba(84,225,232,.45); border-radius: 22px; color: var(--cyan); font-size: 2rem; background: rgba(84,225,232,.08); }.eyebrow { margin: 0; color: var(--cyan); font-weight: 800; letter-spacing: .13em; font-size: .7rem; }
+.settings-card .settings-inline input {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #11172a;
+  color: var(--text);
+  min-height: 48px;
+  font-size: 16px;
+}
+

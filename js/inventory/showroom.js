@@ -32,6 +32,7 @@ export async function createShowroom({ profile, onProfileChange }) {
     sellButton.disabled = selected.size === 0;
   }
   function handleClick(event) {
+    if (event.target.matches('.sell-check input')) return;
     const action = event.target.closest('[data-display-id]'); if (!action) return;
     const result = setDisplayState(profile, action.dataset.displayId, action.dataset.nextDisplay === 'true', config.displayLimit);
     if (!result.changed) { notice.hidden = false; notice.textContent = result.message; return; }
@@ -49,3 +50,4 @@ export async function createShowroom({ profile, onProfileChange }) {
   render();
   return { destroy: () => { displayGrid.removeEventListener('click', handleClick); collectionGrid.removeEventListener('click', handleClick); collectionGrid.removeEventListener('change', handleChange); sellButton.removeEventListener('click', handleSell); } };
 }
+
