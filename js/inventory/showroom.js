@@ -30,31 +30,27 @@ export async function createShowroom({ profile, onProfileChange }) {
     displayGrid.replaceChildren(...(displayed.length ? displayed.map((entry) => itemCard(entry, { display: true })) : [Object.assign(document.createElement('p'), { className: 'empty-collection', textContent: '尚未展示物品。從收藏背包選擇物品展示吧！' })]));
     collectionGrid.replaceChildren(...(stored.length ? stored.map((entry) => {
         const card = itemCard(entry);
-        const label = document.createElement('label');
-        label.className = 'sell-check';
-        label.innerHTML = `<input type="checkbox" value="${entry.instanceId}" ${selected.has(entry.instanceId) ? 'checked' : ''} />出售`;
-        card.prepend(label);
+        const selectButton = document.createElement('button');
+        selectButton.type = 'button'; selectButton.className = `sell-check${selected.has(entry.instanceId) ? ' is-selected' : ''}`;
+        selectButton.dataset.selectId = entry.instanceId;
+        selectButton.textContent = selected.has(entry.instanceId) ? '✓ 已選取' : '選取出售';
+        card.prepend(selectButton);
         return card;
     }) : [Object.assign(document.createElement('p'), { className: 'empty-collection', textContent: '背包目前沒有未展示的收藏品。' })]));
     sellButton.disabled = selected.size === 0;
   }
   function handleClick(event) {
-    if (event.target.matches('.sell-check input')) return;
+    const selection = event.target.closest('[data-select-id]');
+    if (selection) { const { selectId } = selection.dataset; if (selected.has(selectId)) selected.delete(selectId); else selected.add(selectId); render(); return; }
     const action = event.target.closest('[data-display-id]'); if (!action) return;
     const result = setDisplayState(profile, action.dataset.displayId, action.dataset.nextDisplay === 'true', config.displayLimit);
     if (!result.changed) { notice.hidden = false; notice.textContent = result.message; return; }
     onProfileChange(profile); playSound('reveal'); render();
   }
-  function handleChange(event) {
-    if (!event.target.matches('.sell-check input')) return;
-    if (event.target.checked) selected.add(event.target.value); else selected.delete(event.target.value);
-    sellButton.disabled = selected.size === 0;
-  }
   function handleSell() {
     const result = sellCollectionItems(profile, [...selected], catalog); selected.clear(); onProfileChange(profile); if (result.sold) playSound('sell'); notice.hidden = false; notice.textContent = result.message; render();
   }
-  displayGrid.addEventListener('click', handleClick); collectionGrid.addEventListener('click', handleClick); collectionGrid.addEventListener('change', handleChange); sellButton.addEventListener('click', handleSell);
+  displayGrid.addEventListener('click', handleClick); collectionGrid.addEventListener('click', handleClick); sellButton.addEventListener('click', handleSell);
   render();
-  return { destroy: () => { displayGrid.removeEventListener('click', handleClick); collectionGrid.removeEventListener('click', handleClick); collectionGrid.removeEventListener('change', handleChange); sellButton.removeEventListener('click', handleSell); } };
+  return { destroy: () => { displayGrid.removeEventListener('click', handleClick); collectionGrid.removeEventListener('click', handleClick); sellButton.removeEventListener('click', handleSell); } };
 }
-

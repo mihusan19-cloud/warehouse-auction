@@ -11,54 +11,12 @@ function formatMoney(value) {
   return new Intl.NumberFormat('en-US').format(Math.max(0, Number(value) || 0));
 }
 
-function enableMobileInputFocus() {
-  const supportsTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-  if (!supportsTouch) return;
-
-  const focusControl = (element) => {
-    if (!element || element.disabled || element.readOnly) return;
-    const tryFocus = () => {
-      element.focus({ preventScroll: true });
-      if ('setSelectionRange' in element && typeof element.setSelectionRange === 'function') {
-        const end = element.value.length;
-        element.setSelectionRange(end, end);
-      }
-    };
-    window.requestAnimationFrame(() => {
-      tryFocus();
-      window.setTimeout(tryFocus, 120);
-    });
-  };
-
-  const getControl = (target) => {
-    if (!(target instanceof HTMLElement)) return null;
-    return target.closest('input, textarea, select, [contenteditable="true"], [contenteditable=""]');
-  };
-
-  document.addEventListener('touchstart', (event) => {
-    const control = getControl(event.target);
-    if (!control) return;
-    if (document.activeElement !== control) {
-      focusControl(control);
-    }
-  }, { passive: true });
-
-  document.addEventListener('pointerdown', (event) => {
-    const control = getControl(event.target);
-    if (!control) return;
-    if (document.activeElement !== control) {
-      focusControl(control);
-    }
-  }, { passive: true });
-}
-
 function renderProfile(profile) {
   document.querySelector('#player-name').textContent = profile.name;
   document.querySelector('#player-money').textContent = formatMoney(profile.money);
 }
 
 async function initializeApp() {
-  enableMobileInputFocus();
   const profile = loadProfile();
   saveProfile(profile);
   renderProfile(profile);
