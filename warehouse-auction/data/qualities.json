@@ -1,0 +1,10 @@
+{
+  "qualities": [
+    { "id": "垃圾", "label": "垃圾", "color": "#7d8798", "multiplier": 0.4 },
+    { "id": "普通", "label": "普通", "color": "#d4d9e4", "multiplier": 1 },
+    { "id": "稀有", "label": "稀有", "color": "#4aa8ff", "multiplier": 1.7 },
+    { "id": "史詩", "label": "史詩", "color": "#b66cff", "multiplier": 3 },
+    { "id": "傳說", "label": "傳說", "color": "#ffad36", "multiplier": 5 },
+    { "id": "神話", "label": "神話", "color": "#ff5da2", "multiplier": 9 }
+  ]
+}

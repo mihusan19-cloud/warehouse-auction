@@ -1,0 +1,22 @@
+{
+  "grid": { "columns": 12, "rows": 10, "maximumFillRatio": 0.95 },
+  "warehouse": { "minimumItems": 5, "maximumItems": 39 },
+  "prototypeItems": [
+    { "id": "p001", "name": "復古唱片箱", "category": "音樂收藏", "quality": "普通", "value": 2800, "width": 2, "height": 2, "description": "滿載舊時代旋律的木箱。" },
+    { "id": "p002", "name": "黃銅航海羅盤", "category": "古董", "quality": "稀有", "value": 12800, "width": 1, "height": 1, "description": "指針仍穩穩指向北方。" },
+    { "id": "p003", "name": "未拆封模型組", "category": "玩具", "quality": "普通", "value": 3600, "width": 2, "height": 1, "description": "角落貼著褪色的價格標籤。" },
+    { "id": "p004", "name": "皮革旅行箱", "category": "生活雜貨", "quality": "普通", "value": 5200, "width": 2, "height": 2, "description": "磨損的皮革下似乎藏著故事。" },
+    { "id": "p005", "name": "水晶吊燈零件", "category": "家飾", "quality": "稀有", "value": 18400, "width": 3, "height": 1, "description": "切面在暗處折出微光。" },
+    { "id": "p006", "name": "古典油畫", "category": "藝術品", "quality": "史詩", "value": 46800, "width": 2, "height": 3, "description": "畫布背面有無法辨識的簽名。" },
+    { "id": "p007", "name": "餐廳招牌霓虹燈", "category": "招牌", "quality": "稀有", "value": 15600, "width": 3, "height": 2, "description": "電線纏繞，玻璃管仍然完整。" },
+    { "id": "p008", "name": "密封漫畫長盒", "category": "收藏卡漫", "quality": "普通", "value": 4100, "width": 3, "height": 1, "description": "盒身沒有任何標記。" },
+    { "id": "p009", "name": "銀製茶具", "category": "餐具", "quality": "稀有", "value": 22400, "width": 2, "height": 2, "description": "沉甸甸的金屬光澤依舊鮮明。" },
+    { "id": "p010", "name": "街機主機板", "category": "電玩", "quality": "稀有", "value": 9700, "width": 2, "height": 1, "description": "零件編號屬於一款失傳街機。" },
+    { "id": "p011", "name": "陶瓷花瓶", "category": "家飾", "quality": "普通", "value": 2900, "width": 1, "height": 2, "description": "瓶口以報紙仔細包好。" },
+    { "id": "p012", "name": "木雕面具", "category": "民族工藝", "quality": "稀有", "value": 11800, "width": 1, "height": 2, "description": "獨特紋樣刻滿整張面孔。" },
+    { "id": "p013", "name": "老式相機包", "category": "攝影", "quality": "普通", "value": 4500, "width": 2, "height": 1, "description": "扣環尚未打開。" },
+    { "id": "p014", "name": "機械腕錶展示盒", "category": "飾品", "quality": "史詩", "value": 53200, "width": 1, "height": 1, "description": "盒蓋上刻有私人訂製縮寫。" },
+    { "id": "p015", "name": "老電影膠卷罐", "category": "電影", "quality": "稀有", "value": 14500, "width": 1, "height": 1, "description": "罐身標示著停業戲院名稱。" },
+    { "id": "p016", "name": "手工地毯捲", "category": "紡織品", "quality": "普通", "value": 6200, "width": 3, "height": 1, "description": "厚實織紋尚未完全展開。" }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "characters": [
+    { "id": "mira", "name": "米拉", "avatar": "🕶️", "personality": "保守型", "bidMultiplier": [0.5, 0.7], "dialogues": ["這批貨的風險太高，我只出 ${{bid}}。", "先守住本金，$ {{bid}} 已是我的底線。"] },
+    { "id": "chen", "name": "陳老闆", "avatar": "🧥", "personality": "普通型", "bidMultiplier": [0.7, 0.9], "dialogues": ["資料夠用了，$ {{bid}}。", "我看得很清楚，這個價位合理：$ {{bid}}。"] },
+    { "id": "nova", "name": "諾娃", "avatar": "🧢", "personality": "激進型", "bidMultiplier": [0.9, 1.3], "dialogues": ["我聞到寶物的味道，$ {{bid}}！", "你們慢慢算，我先喊 $ {{bid}}。"] },
+    { "id": "yun", "name": "雲先生", "avatar": "🎩", "personality": "保守型", "bidMultiplier": [0.5, 0.7], "dialogues": ["倉庫裡的未知數太多，$ {{bid}}。", "直覺說這次別衝動，出 $ {{bid}}。"] },
+    { "id": "lulu", "name": "露露", "avatar": "💎", "personality": "激進型", "bidMultiplier": [0.9, 1.3], "dialogues": ["我要的就是驚喜，$ {{bid}}！", "這扇門後肯定有大魚，$ {{bid}}。"] },
+    { "id": "kai", "name": "凱叔", "avatar": "🧰", "personality": "普通型", "bidMultiplier": [0.7, 0.9], "dialogues": ["讓數字說話吧，$ {{bid}}。", "這些線索值這個價，$ {{bid}}。"] }
+  ],
+  "specialShouts": [67, 114514],
+  "specialShoutChance": 0.025
+}
