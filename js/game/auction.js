@@ -35,16 +35,21 @@ export async function createAuction({ profile, onProfileChange }) {
   function maybeCloseRound() { if (!roundClosed && allConfirmed()) closeRound(); }
   function confirmAiBid(ai, round) {
     if (disposed || roundClosed || ai.confirmed || controller.getRound() !== round) return;
-    makeAiBid(ai, warehouse, aiDatabase, { minimum: round === 6 ? fifthBidFor(ai.bidderId) : 1, playerPreviousBid: previousPlayerBid() }); ai.confirmed = true; playSound('bid'); status.textContent = `${ai.name} 已完成喊價。`; renderBidders(); maybeCloseRound();
+    makeAiBid(ai, warehouse, aiDatabase, { minimum: round === 6 ? fifthBidFor(ai.bidderId) : 1, playerPreviousBid: previousPlayerBid() }); ai.confirmed = true; playSound('bid'); renderBidders(); maybeCloseRound();
   }
-  function scheduleAiBids(round, immediate = false) {
-    bidders.slice(1).forEach((ai, index) => { if (ai.confirmed) return; const delay = immediate ? 350 + index * 430 : 5000 + index * 1250 + Math.floor(Math.random() * 500); aiTimers.push(window.setTimeout(() => confirmAiBid(ai, round), delay)); });
+  function scheduleAiBids(round, afterPlayerBid = false) {
+    if (afterPlayerBid) clearAiTimers();
+    const waitingAis = bidders.slice(1).filter((ai) => !ai.confirmed);
+    const delays = waitingAis.map((_, index) => afterPlayerBid
+      ? 600 + Math.floor(Math.random() * (4400 - index * 350))
+      : 5000 + Math.floor(Math.random() * 55001));
+    waitingAis.forEach((ai, index) => { aiTimers.push(window.setTimeout(() => confirmAiBid(ai, round), Math.max(350, delays[index]))); });
   }
   function beginRound(round) {
     clearAiTimers(); roundClosed = false; bidders.forEach((bidder) => { bidder.lastBid = null; bidder.confirmed = false; bidder.dialogue = ''; });
     const previousItemIds = clueHistory.flatMap((clueEntry) => clueEntry.items?.map((item) => item.id) ?? []);
     const clue = round <= 5 ? revealClue(warehouse, round, previousItemIds) : { meta: { title: '平手決勝回合', description: '最高價平手，本回合出價不可低於第五回合價格。' }, items: [] };
-    if (clue.type !== 'none') clueHistory.push(clue); renderClue(clue); renderClueHistory(); renderWarehouse(warehouse, openMiniCatalog); renderBidders(); renderHistory(); setBidControls(true, round === 6 ? fifthBidFor('player') : 0, { resetValue: true }); nextButton.hidden = true; newWarehouseButton.hidden = true; status.textContent = round === 6 ? '平手決勝：請提交不低於第五回合的出價。' : 'AI 將在 5 秒後陸續確認出價。'; scheduleAiBids(round);
+    if (clue.type !== 'none') clueHistory.push(clue); renderClue(clue); renderClueHistory(); renderWarehouse(warehouse, openMiniCatalog); renderBidders(); renderHistory(); setBidControls(true, round === 6 ? fifthBidFor('player') : 0, { resetValue: true }); nextButton.hidden = true; newWarehouseButton.hidden = true; status.textContent = round === 6 ? '平手決勝：請提交不低於第五回合的出價。' : '查看情報後，提交本回合唯一出價。'; scheduleAiBids(round);
   }
   function completeAuction(message) { ended = true; clearAiTimers(); controller.stop(); setBidControls(false); status.textContent = message; newWarehouseButton.hidden = false; nextButton.hidden = true; }
   function settleWinner(winner) {
