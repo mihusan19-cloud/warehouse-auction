@@ -8,7 +8,7 @@
     {"id":"surveyor","name":"艾妲・測繪員","icon":"◈","description":"開場揭露最高品質物品的品質與大小。","effect":"topQuality"},
     {"id":"archivist","name":"洛伊・檔案員","icon":"▦","description":"第 1、3 回合各額外取得一條情報。","effect":"extraClue"},
     {"id":"statistician","name":"梅森・統計師","icon":"Σ","description":"開場公開稀有以上物品的總件數。","effect":"rareCount"},
-    {"id":"broker","name":"芮娜・經紀人","icon":"◇","description":"玩家避開 AI 高價接盤時，額外獲得情報點。","effect":"riskBonus"}
+    {"id":"broker","name":"芮娜・經紀人","icon":"◇","description":"避開高價接盤時，額外獲得情報點。","effect":"riskBonus"}
   ],
   "instruments": [
     {"id":"sizeScanner","name":"尺寸掃描器","icon":"▤","cost":1200,"description":"本回合揭露 3 件未知物品的大小。","effect":"size"},
