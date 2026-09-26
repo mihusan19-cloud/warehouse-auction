@@ -1,6 +1,6 @@
 function randomBetween(min, max) { return min + Math.random() * (max - min); }
 function choose(items) { return items[Math.floor(Math.random() * items.length)]; }
-const ASSISTANT_INSIGHT = { topQuality: 0.24, extraClue: 0.16, rareCount: 0.12, topValue: 0.3 };
+const ASSISTANT_INSIGHT = { topQuality: 0.24, extraClue: 0.16, rareCount: 0.12, topValue: 0.3, totalCells: 0.17, valueRange: 0.29, blindSpot: 0.2 };
 
 export function createAiBidders(database, assistants = []) { return Array.from({ length: 3 }, (_, index) => ({ ...choose(database.characters), bidderId: `ai-${index}`, money: Math.floor(randomBetween(240000, 780000)), lastBid: 0, dialogue: '', assistant: assistants.length ? choose(assistants) : { id: 'independent', effect: 'extraClue' } })); }
 export function createAiBidRemainingMarks(count, { currentRemaining = 60, afterPlayerBid = false } = {}) {

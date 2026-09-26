@@ -8,11 +8,17 @@
     {"id":"surveyor","name":"艾妲・測繪員","icon":"◈","description":"開場揭露最高品質物品的品質與大小。","effect":"topQuality"},
     {"id":"archivist","name":"洛伊・檔案員","icon":"▦","description":"第 1、3 回合各額外取得一條情報。","effect":"extraClue"},
     {"id":"statistician","name":"梅森・統計師","icon":"Σ","description":"開場公開稀有以上物品的總件數。","effect":"rareCount"},
-    {"id":"broker","name":"芮娜・經紀人","icon":"◇","description":"開場公開本局價值最高 2 件物品的固定價值。","effect":"topValue"}
+    {"id":"broker","name":"芮娜・經紀人","icon":"◇","description":"開場公開本局價值最高 2 件物品的固定價值。","effect":"topValue"},
+    {"id":"spaceAnalyst","name":"岑岳・空間分析師","icon":"▥","description":"開場公布倉庫物品實際佔用的總格數，不指出位置。","effect":"totalCells"},
+    {"id":"riskAppraiser","name":"璃央・風險估價師","icon":"◫","description":"第 2 回合公布倉庫總價值所在的 $100,000 區間。","effect":"valueRange","rangeStep":100000},
+    {"id":"blindSpot","name":"凱特・盲點調查員","icon":"◎","description":"第 3 回合額外揭露 1 件尚未完全掌握的物品品質與大小。","effect":"blindSpot"}
   ],
   "instruments": [
-    {"id":"sizeScanner","name":"尺寸掃描器","icon":"▤","cost":1200,"description":"本回合揭露 3 件未知物品的大小。","effect":"size"},
-    {"id":"qualityScanner","name":"品質探測器","icon":"✦","cost":4500,"description":"本回合揭露 3 件未知物品的品質。","effect":"quality"},
-    {"id":"valueProbe","name":"估值探針","icon":"$","cost":8500,"description":"本回合揭露 2 件未知物品的固定價值。","effect":"value"}
+    {"id":"sizeScanner","name":"尺寸掃描器","icon":"▤","cost":1200,"description":"本回合揭露 3 件未知物品的大小。","effect":"size","count":3},
+    {"id":"qualityScanner","name":"品質探測器","icon":"✦","cost":4500,"description":"本回合揭露 3 件未知物品的品質。","effect":"quality","count":3},
+    {"id":"valueProbe","name":"估值探針","icon":"$","cost":8500,"description":"本回合揭露 2 件未知物品的固定價值。","effect":"value","count":2},
+    {"id":"totalCellsMeter","name":"總格測量尺","icon":"▦","cost":2500,"description":"公布本倉庫所有物品實際佔用的總格數。","effect":"totalCells"},
+    {"id":"identityDecoder","name":"單品解碼器","icon":"✧","cost":18000,"description":"隨機確認 1 件尚未知道品項的物品。","effect":"identity","count":1},
+    {"id":"targetScanner","name":"定點掃描筆","icon":"⌖","cost":12000,"description":"點選一件物品，自選揭露其品質或大小。","effect":"targeted"}
   ]
 }

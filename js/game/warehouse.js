@@ -49,7 +49,7 @@ export function renderWarehouse(warehouse, onItemClick) {
     const visibleHeight = item.knowledge.size ? item.height : 1;
     const category = item.category ?? item.series;
     const revealed = Object.values(item.knowledge).some(Boolean);
-    element.className = `warehouse-item${item.knowledge.size ? ' is-sized' : ''}${revealed ? ' is-revealed' : ''}${item.knowledge.identity ? ' is-identified' : ''}${item.knowledge.value ? ' has-value' : ''}${item.knowledge.quality ? ` quality-${item.quality}` : ''}`;
+    element.className = `warehouse-item${item.knowledge.size ? ' is-sized' : ''}${revealed ? ' is-revealed' : ''}${item.knowledge.identity ? ' is-identified' : ''}${item.knowledge.value ? ' has-value' : ''}${item.knowledge.quality ? ` quality-${item.quality}` : ''}${item.knowledge.quality && item.knowledge.size ? ' is-scan-complete' : ''}`;
     element.dataset.slotId = String(item.slotId);
     element.style.cssText = `grid-column:${item.x + 1} / span ${visibleWidth};grid-row:${item.y + 1} / span ${visibleHeight};`;
     element.setAttribute('aria-label', `物品 ${item.slotId}${item.knowledge.identity ? `，${item.name}` : item.knowledge.category ? `，${category}` : ''}`);

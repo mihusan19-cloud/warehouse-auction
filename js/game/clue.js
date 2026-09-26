@@ -8,6 +8,41 @@ const CLUE_META = {
 
 function shuffle(items) { return [...items].sort(() => Math.random() - 0.5); }
 
+export function totalOccupiedCells(warehouse) {
+  return warehouse.items.reduce((total, item) => total + item.width * item.height, 0);
+}
+
+export function makeTotalCellsClue(warehouse, title, type = 'assistant-totalCells') {
+  const summary = `本倉庫物品實際佔用 ${totalOccupiedCells(warehouse)} 格。`;
+  return { type, factKey: 'totalCells', meta: { title, description: summary }, items: [], summary };
+}
+
+export function makeValueRangeClue(warehouse, title, step = 100000) {
+  const width = Math.max(1, Math.floor(Number(step) || 100000));
+  const total = warehouse.items.reduce((sum, item) => sum + item.value, 0);
+  const lower = Math.floor(total / width) * width;
+  const upper = lower + width - 1;
+  const summary = `本倉庫總價值介於 $${lower.toLocaleString('en-US')}～$${upper.toLocaleString('en-US')}。`;
+  return { type: 'assistant-valueRange', meta: { title, description: summary }, items: [], summary, lower, upper };
+}
+
+export function revealBlindSpotClue(warehouse, title) {
+  const unknownBoth = warehouse.items.filter((item) => !item.knowledge.quality && !item.knowledge.size);
+  const partlyUnknown = warehouse.items.filter((item) => !item.knowledge.quality || !item.knowledge.size);
+  const target = shuffle(unknownBoth.length ? unknownBoth : partlyUnknown)[0];
+  if (!target) return null;
+  target.knowledge.quality = true;
+  target.knowledge.size = true;
+  return { type: 'assistant-blindSpot', meta: { title, description: '已補查一件尚未完全掌握的物品，揭露品質與大小。' }, items: [target] };
+}
+
+export function instrumentCanReveal(warehouse, effect, clueHistory = []) {
+  if (effect === 'totalCells') return !clueHistory.some((clue) => clue.factKey === 'totalCells');
+  if (effect === 'targeted') return warehouse.items.some((item) => !item.knowledge.quality || !item.knowledge.size);
+  const field = { size: 'size', quality: 'quality', value: 'value', identity: 'identity' }[effect];
+  return Boolean(field && warehouse.items.some((item) => !item.knowledge[field]));
+}
+
 function qualitySummary(warehouse) {
   const present = [...new Set(warehouse.items.map((item) => item.quality))]; const quality = present[Math.floor(Math.random() * present.length)]; const matching = warehouse.items.filter((item) => item.quality === quality);
   const variants = [
@@ -52,14 +87,26 @@ export function revealBonusClue(warehouse, previousSlotIds = []) {
   return { type: `bonus-${type}`, meta, items };
 }
 
-export function revealInstrumentClue(warehouse, effect) {
-  const fields = effect === 'quality' ? ['quality'] : effect === 'value' ? ['value'] : ['size'];
+export function revealInstrumentClue(warehouse, effect, requestedCount) {
+  if (effect === 'totalCells') return makeTotalCellsClue(warehouse, '總格測量完成', 'instrument-totalCells');
+  const field = { size: 'size', quality: 'quality', value: 'value', identity: 'identity' }[effect];
+  if (!field) return null;
+  const fields = [field];
   const eligible = warehouse.items.filter((item) => fields.some((field) => !item.knowledge[field]));
-  const count = Math.min(eligible.length, effect === 'value' ? 2 : 3);
+  const count = Math.min(eligible.length, requestedCount ?? (effect === 'value' ? 2 : effect === 'identity' ? 1 : 3));
   const items = shuffle(eligible).slice(0, count);
   items.forEach((item) => fields.forEach((field) => { item.knowledge[field] = true; }));
-  const labels = { size: '尺寸掃描完成', quality: '品質探測完成', value: '估值探針完成' };
+  const labels = { size: '尺寸掃描完成', quality: '品質探測完成', value: '估值探針完成', identity: '單品解碼完成' };
   return { type: `instrument-${effect}`, meta: { title: labels[effect], description: '儀器提供的情報只供本次競標判斷。', fields }, items };
+}
+
+export function revealTargetedClue(warehouse, slotId, field) {
+  if (!['quality', 'size'].includes(field)) return null;
+  const item = warehouse.items.find((entry) => entry.slotId === Number(slotId));
+  if (!item || item.knowledge[field]) return null;
+  item.knowledge[field] = true;
+  const label = field === 'quality' ? '品質' : '大小';
+  return { type: `instrument-targeted-${field}`, meta: { title: `定點${label}掃描完成`, description: `物品 #${String(item.slotId).padStart(2, '0')} 的實際${label}已揭露。` }, items: [item] };
 }
 
 export function renderClue(clue) {
