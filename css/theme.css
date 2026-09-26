@@ -48,7 +48,7 @@
 .auction-condition, .warehouse-valuation { padding: 13px; border-radius: 13px; }
 .auction-condition strong, .warehouse-valuation strong { margin: 5px 0; font-size: .95rem; }
 .warehouse-valuation strong { font-size: 1.2rem; }
-.warehouse-grid { border-width: 4px; border-radius: 12px; background-color: #0c152b; background-image: linear-gradient(rgba(160,180,240,.055) 1px, transparent 1px), linear-gradient(90deg, rgba(160,180,240,.055) 1px, transparent 1px); background-size: calc(100% / var(--columns)) calc(100% / var(--rows)); }
+.warehouse-grid { border-width: 4px; border-color: #91a7cd; border-radius: 12px; background-color: #101c34; background-image: linear-gradient(rgba(173,199,250,.16) 1px, transparent 1px), linear-gradient(90deg, rgba(173,199,250,.16) 1px, transparent 1px); background-size: calc(100% / var(--columns)) calc(100% / var(--rows)); }
 .warehouse-item { border-radius: 7px; }
 .round-panel .eyebrow { width: 100%; text-align: center; }
 .round-timer { width: 100%; margin: 15px 0 9px; padding: 10px 2px; border: 1px solid rgba(255,209,92,.25); border-radius: 16px; background: rgba(8,14,29,.42); font-size: clamp(2.8rem, 4.1vw, 4.2rem); line-height: 1.1; }

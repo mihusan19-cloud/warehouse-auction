@@ -31,5 +31,5 @@ export function playClueAnimation(title, itemCount = 0) {
   const overlay = document.createElement('div'); overlay.id = 'clue-fx'; overlay.className = 'clue-fx';
   overlay.innerHTML = `<div><span>◈</span><small>NEW INTEL</small><strong>${title}</strong><em>${itemCount ? `已標記 ${itemCount} 件物品` : '倉庫情報已更新'}</em></div>`;
   document.body.append(overlay);
-  window.setTimeout(() => overlay.remove(), 1450);
+  return new Promise((resolve) => window.setTimeout(() => { overlay.remove(); resolve(); }, 1450));
 }

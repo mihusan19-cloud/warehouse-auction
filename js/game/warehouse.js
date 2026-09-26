@@ -49,6 +49,7 @@ export function renderWarehouse(warehouse, onItemClick) {
     const category = item.category ?? item.series;
     const revealed = Object.values(item.knowledge).some(Boolean);
     element.className = `warehouse-item${item.knowledge.size ? ' is-sized' : ''}${revealed ? ' is-revealed' : ''}${item.knowledge.identity ? ' is-identified' : ''}${item.knowledge.value ? ' has-value' : ''}${item.knowledge.quality ? ` quality-${item.quality}` : ''}`;
+    element.dataset.itemId = item.id;
     element.style.cssText = `grid-column:${item.x + 1} / span ${visibleWidth};grid-row:${item.y + 1} / span ${visibleHeight};`;
     element.setAttribute('aria-label', `物品 ${index + 1}${item.knowledge.identity ? `，${item.name}` : item.knowledge.category ? `，${category}` : ''}`);
     element.setAttribute('role', 'button'); element.tabIndex = 0;

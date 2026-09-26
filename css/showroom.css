@@ -25,3 +25,16 @@
 @media (max-width: 680px) { .showroom-heading { align-items: flex-start; }.showroom-heading p:not(.eyebrow) { display: none; }.showroom-stats { width: 100%; }.showroom-stats div { flex: 1; min-width: 0; }.showroom-heading { flex-direction: column; }.section-title { align-items: flex-start; }.section-title .button { padding: 10px 12px; font-size: .72rem; }.display-grid, .collection-grid { grid-template-columns: 1fr; } }
 .sell-check { position: absolute; z-index: 3; top: 6px; right: 6px; min-height: 34px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; color: var(--text); background: #17203a; cursor: pointer; font-size: .7rem; touch-action: manipulation; }.sell-check.is-selected { border-color: var(--gold); color: #16101d; background: var(--gold); font-weight: 900; }
 
+.income-claim { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 14px; padding: 17px 20px; border-color: rgba(255, 200, 70, .38); background: linear-gradient(110deg, rgba(53, 47, 76, .95), rgba(20, 31, 58, .95)); }
+.income-claim small, .income-claim strong, .income-claim span { display: block; }
+.income-claim small { color: var(--muted); font-size: .72rem; }
+.income-claim strong { margin: 4px 0; color: var(--gold); font-size: clamp(1.3rem, 3vw, 1.8rem); }
+.income-claim span { color: #c9d5ee; font-size: .7rem; }
+.income-claim .button { flex: 0 0 auto; }
+.income-claim .button:disabled { opacity: .5; cursor: not-allowed; }
+.quality-select-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin: 0 0 15px; }
+.quality-select-button, .quality-clear-button { min-height: 36px; padding: 7px 10px; border: 1px solid var(--quality-color, var(--line)); border-radius: 9px; color: var(--text); background: rgba(12, 19, 37, .78); cursor: pointer; font-size: .72rem; touch-action: manipulation; }
+.quality-select-button:hover:not(:disabled), .quality-clear-button:hover:not(:disabled) { background: rgba(255, 255, 255, .1); }
+.quality-select-button:disabled, .quality-clear-button:disabled { opacity: .38; cursor: not-allowed; }
+.quality-clear-button { margin-left: auto; color: var(--muted); }
+@media (max-width: 680px) { .income-claim { padding: 14px; }.income-claim .button { padding: 11px 12px; }.quality-clear-button { margin-left: 0; } }
