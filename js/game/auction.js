@@ -1,6 +1,7 @@
 import { generateWarehouse, renderWarehouse } from './warehouse.js';
 import { revealBonusClue, revealClue, revealInstrumentClue, renderClue } from './clue.js';
 import { createRoundController } from './round.js';
+import { bidderStatus } from './bidderView.js';
 import { createAiBidRemainingMarks, createAiBidders, makeAiBid } from '../ai/aiEngine.js';
 import { getHighestBidders, validatePlayerBid } from './bid.js';
 import { loadCatalog } from '../encyclopedia/encyclopedia.js';
@@ -82,10 +83,10 @@ export async function createAuction({ profile, onProfileChange }) {
         row.innerHTML = '<span class="bidder-avatar"></span><span class="bidder-name"><strong></strong></span><span class="bidder-bid"></span>';
         target.append(row);
       }
-      const rank = 1 + bidders.filter((other) => other.lastBid > bidder.lastBid).length;
-      const completedBid = bidder.lastBid === 0 ? '放棄本回合' : condition.effect === 'rankOnly' ? `第 ${rank} 名` : format(bidder.lastBid);
-      const bidText = bidder.lastBid === null ? '等待出價' : bidder.revealed ? completedBid : '已完成喊價';
+      const bidText = bidderStatus(bidder, bidders, condition.effect === 'rankOnly');
       row.classList.toggle('is-player', bidder.bidderId === 'player');
+      row.classList.toggle('is-complete', bidder.confirmed);
+      row.classList.toggle('is-revealed', bidder.revealed);
       row.querySelector('.bidder-avatar').textContent = bidder.avatar;
       row.querySelector('.bidder-name strong').textContent = bidder.name;
       row.querySelector('.bidder-bid').textContent = bidText;
