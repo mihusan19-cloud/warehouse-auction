@@ -1,6 +1,6 @@
 const SAVE_KEY = 'warehouse-auction-save-v1';
 
-export const DEFAULT_PROFILE = Object.freeze({ name: '競標新手', money: 1000000, collection: [], hasChosenName: false, settings: { soundEnabled: true }, stats: { auctions: 0, wins: 0 }, auction: { intel: 0, selectedVenue: 'yard', selectedAssistant: 'surveyor', instruments: { sizeScanner: 1, qualityScanner: 0, valueProbe: 0 } } });
+export const DEFAULT_PROFILE = Object.freeze({ name: '競標新手', money: 1000000, collection: [], hasChosenName: false, settings: { soundEnabled: true }, stats: { auctions: 0, wins: 0 }, auction: { intel: 0, selectedVenue: 'yard', selectedAssistant: 'surveyor', instruments: { sizeScanner: 0, qualityScanner: 0, valueProbe: 0 } } });
 
 export function loadProfile() {
   try {

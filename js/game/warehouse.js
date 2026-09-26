@@ -24,7 +24,7 @@ export function generateWarehouse(template) {
   for (const item of picked) {
     const usedCells = [...occupied].length;
     if (usedCells + item.width * item.height > maximumCells) continue;
-    const positions = shuffle(Array.from({ length: capacity }, (_, index) => ({ x: index % grid.columns, y: Math.floor(index / grid.columns) })));
+    const positions = Array.from({ length: capacity }, (_, index) => ({ x: index % grid.columns, y: Math.floor(index / grid.columns) }));
     const position = positions.find(({ x, y }) => canPlace(occupied, item, x, y, grid));
     if (!position) continue;
     occupy(occupied, item, position.x, position.y);
@@ -32,6 +32,7 @@ export function generateWarehouse(template) {
   }
 
   if (items.length < warehouse.minimumItems) throw new Error('倉庫生成失敗：可放置物品不足。');
+  items.sort((left, right) => left.y - right.y || left.x - right.x);
   return { id: String(Math.floor(1000 + Math.random() * 9000)), grid, items };
 }
 

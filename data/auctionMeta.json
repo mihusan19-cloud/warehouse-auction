@@ -11,8 +11,8 @@
     {"id":"broker","name":"芮娜・經紀人","icon":"◇","description":"玩家避開 AI 高價接盤時，額外獲得情報點。","effect":"riskBonus"}
   ],
   "instruments": [
-    {"id":"sizeScanner","name":"尺寸掃描器","icon":"▤","cost":0,"description":"本回合揭露 3 件未知物品的大小。","effect":"size"},
-    {"id":"qualityScanner","name":"品質探測器","icon":"✦","cost":3,"description":"本回合揭露 3 件未知物品的品質。","effect":"quality"},
-    {"id":"valueProbe","name":"估值探針","icon":"$","cost":5,"description":"本回合揭露 2 件未知物品的固定價值。","effect":"value"}
+    {"id":"sizeScanner","name":"尺寸掃描器","icon":"▤","cost":1200,"description":"本回合揭露 3 件未知物品的大小。","effect":"size"},
+    {"id":"qualityScanner","name":"品質探測器","icon":"✦","cost":4500,"description":"本回合揭露 3 件未知物品的品質。","effect":"quality"},
+    {"id":"valueProbe","name":"估值探針","icon":"$","cost":8500,"description":"本回合揭露 2 件未知物品的固定價值。","effect":"value"}
   ]
 }

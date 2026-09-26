@@ -25,3 +25,11 @@ export function playConditionDraw(options, selected) {
   document.body.append(overlay);
   return new Promise((resolve) => { window.setTimeout(() => { overlay.querySelector(`[data-condition-id="${selected.id}"]`)?.classList.add('is-selected'); overlay.querySelector('strong').textContent = selected.title; window.setTimeout(() => { overlay.remove(); resolve(); }, 850); }, 1100); });
 }
+
+export function playClueAnimation(title, itemCount = 0) {
+  document.querySelector('#clue-fx')?.remove();
+  const overlay = document.createElement('div'); overlay.id = 'clue-fx'; overlay.className = 'clue-fx';
+  overlay.innerHTML = `<div><span>◈</span><small>NEW INTEL</small><strong>${title}</strong><em>${itemCount ? `已標記 ${itemCount} 件物品` : '倉庫情報已更新'}</em></div>`;
+  document.body.append(overlay);
+  window.setTimeout(() => overlay.remove(), 1450);
+}
