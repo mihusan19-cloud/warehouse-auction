@@ -3,4 +3,5 @@
 @media (max-width: 620px) { .auction-header { align-items: flex-start; }.auction-layout { display: flex; flex-direction: column; }.warehouse-panel { order: 1; }.clue-panel { order: 2; }.round-panel { order: 3; min-height: 0; }.warehouse-grid { gap: 3px; }.round-panel .button { max-width: 310px; }.clue-description { min-height: 0; } }
 @media (max-width: 420px) { .auction-insights { grid-template-columns: 1fr; }.auction-condition, .warehouse-valuation { padding: 8px 9px; } }
 @media (max-width: 760px) { .bid-panel { grid-template-columns: 1fr 1fr; padding: 13px; }.bid-copy { grid-column: 1 / -1; }.bid-panel .button, .bid-panel .text-button { width: 100%; } }
+@media (max-width: 700px) { .prep-card-grid { grid-template-columns: 1fr; }.assistant-grid, .instrument-shop { grid-template-columns: repeat(2, minmax(0, 1fr)); }.instrument-panel { align-items: flex-start; flex-direction: column; }.instrument-panel > div:last-child { justify-content: flex-start; } }
 @media (max-width: 380px) { .brand strong { font-size: .68rem; }.brand-mark { width: 33px; height: 33px; }.wallet { font-size: .68rem; }.hero-card h1 { font-size: 2.15rem; } }

@@ -48,9 +48,19 @@ export function revealBonusClue(warehouse, previousItemIds = []) {
   return { type: `bonus-${type}`, meta, items };
 }
 
+export function revealInstrumentClue(warehouse, effect) {
+  const fields = effect === 'quality' ? ['quality'] : effect === 'value' ? ['value'] : ['size'];
+  const eligible = warehouse.items.filter((item) => fields.some((field) => !item.knowledge[field]));
+  const count = Math.min(eligible.length, effect === 'value' ? 2 : 3);
+  const items = shuffle(eligible).slice(0, count);
+  items.forEach((item) => fields.forEach((field) => { item.knowledge[field] = true; }));
+  const labels = { size: '尺寸掃描完成', quality: '品質探測完成', value: '估值探針完成' };
+  return { type: `instrument-${effect}`, meta: { title: labels[effect], description: '儀器提供的情報只供本次競標判斷。', fields }, items };
+}
+
 export function renderClue(clue) {
   document.querySelector('#clue-title').textContent = clue.meta.title; document.querySelector('#clue-description').textContent = clue.meta.description;
   const card = document.querySelector('#clue-item-card');
   if (!clue.items.length) { card.innerHTML = `<span class="clue-empty">${clue.summary ?? '本輪請仔細觀察倉庫。'}</span>`; return; }
-  card.innerHTML = clue.items.map((item) => { const details = []; if (item.knowledge.category) details.push(`種類：${item.category ?? item.series}`); if (item.knowledge.value) details.push(`價值：$${item.value.toLocaleString('en-US')}`); if (item.knowledge.size) details.push(`大小：${item.width}×${item.height} 格`); return `<div><strong>物品 #${item.id.slice(-3)}</strong><span>${details.join('　')}</span></div>`; }).join('');
+  card.innerHTML = clue.items.map((item) => { const details = []; if (item.knowledge.quality) details.push(`品質：${item.quality}`); if (item.knowledge.category) details.push(`種類：${item.category ?? item.series}`); if (item.knowledge.value) details.push(`價值：$${item.value.toLocaleString('en-US')}`); if (item.knowledge.size) details.push(`大小：${item.width}×${item.height} 格`); return `<div><strong>物品 #${item.id.slice(-3)}</strong><span>${details.join('　')}</span></div>`; }).join('');
 }

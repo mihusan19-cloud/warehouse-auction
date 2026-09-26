@@ -15,3 +15,13 @@ export function playUnboxingAnimation(items) {
   timer = window.setInterval(() => { if (index >= cards.length) { finish(); return; } revealCard(cards[index]); index += 1; }, 180);
   skipButton.addEventListener('click', () => { if (finished) overlay.remove(); else finish(); }); document.body.append(overlay);
 }
+
+export function playConditionDraw(options, selected) {
+  document.querySelector('#condition-draw-fx')?.remove();
+  const overlay = document.createElement('div'); overlay.id = 'condition-draw-fx'; overlay.className = 'condition-draw-fx';
+  const choices = [...options].sort(() => Math.random() - 0.5).slice(0, 4);
+  if (!choices.some((entry) => entry.id === selected.id)) choices[Math.floor(Math.random() * choices.length)] = selected;
+  overlay.innerHTML = `<section role="status"><p class="eyebrow">WAREHOUSE CONDITION</p><h2>正在抽選倉庫條件</h2><div class="condition-draw-list">${choices.map((entry) => `<span data-condition-id="${entry.id}">${entry.title}</span>`).join('')}</div><strong>分析倉庫環境中…</strong></section>`;
+  document.body.append(overlay);
+  return new Promise((resolve) => { window.setTimeout(() => { overlay.querySelector(`[data-condition-id="${selected.id}"]`)?.classList.add('is-selected'); overlay.querySelector('strong').textContent = selected.title; window.setTimeout(() => { overlay.remove(); resolve(); }, 850); }, 1100); });
+}

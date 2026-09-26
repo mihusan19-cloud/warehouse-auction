@@ -52,6 +52,7 @@
         </section>
 
         <section class="page auction-page" data-page="auction">
+          <section id="auction-lobby" class="auction-lobby panel" aria-label="競標準備"></section>
           <div class="auction-header">
             <div>
               <button class="home-nav-button" type="button" data-route="home">← 回首頁</button>
@@ -65,6 +66,7 @@
             <section class="warehouse-panel panel"><div class="warehouse-toolbar"><span>倉庫平面圖</span><small id="warehouse-item-count">0 件物品</small><button id="auction-catalog-button" class="mini-catalog-button" type="button">小圖鑑</button></div><div class="auction-insights"><div id="auction-condition" class="auction-condition"><small>倉庫條件</small><strong>正在確認…</strong><span></span></div><div class="warehouse-valuation"><small>已知最低價值</small><strong id="warehouse-lower-value">$0</strong><span id="warehouse-value-range">推測區間 $0 ～ $0</span></div></div><div id="warehouse-grid" class="warehouse-grid" aria-label="神秘倉庫物品格子"></div><p class="warehouse-hint">估值會依已知情報與圖鑑候選計算；灰色輪廓代表未知物品。點選物品可查看可能候選。</p></section>
             <aside class="round-panel panel"><p class="eyebrow">THINKING TIME</p><div id="round-timer" class="round-timer">01:00</div><p id="auction-status" class="timer-label">查看情報後，提交本回合唯一出價。</p><div id="bidders-list" class="bidders-list" aria-label="本回合競標者名單"></div><div id="bid-history" class="bid-history" aria-label="歷史出價紀錄"></div></aside>
           </div>
+          <section id="instrument-panel" class="instrument-panel panel" aria-label="本回合鑑定儀器"></section>
           <section class="bid-panel panel"><div class="bid-copy"><small>本回合出價</small><strong id="bid-minimum">可輸入 0 放棄競標</strong></div><label class="bid-input-wrap" for="bid-input">$<input id="bid-input" type="text" inputmode="numeric" autocomplete="off" value="0" aria-label="本回合出價" /></label><button id="bid-submit-button" class="button button-primary" type="button">鎖定出價</button><button id="next-round-button" class="button button-secondary" type="button" hidden>下一回合</button><button id="new-warehouse-button" class="text-button" type="button" hidden>前往下一個倉庫</button></section>
         </section>
         <section class="page encyclopedia-page" data-page="encyclopedia">
