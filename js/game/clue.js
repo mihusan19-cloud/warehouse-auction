@@ -18,7 +18,7 @@ function qualitySummary(warehouse) {
   const result = variants[Math.floor(Math.random() * variants.length)]; return { type: 'qualitySummary', meta: result, items: [], summary: result.description };
 }
 
-export function revealClue(warehouse, round, previousItemIds = []) {
+export function revealClue(warehouse, round, previousSlotIds = []) {
   // 第四回合保留為整理資訊的空檔；其餘指定回合都從四種資訊隨機抽取。
   const type = round === 4 ? 'none' : ['size', 'quality', 'identity', 'qualitySummary'][Math.floor(Math.random() * 4)];
   if (type === 'qualitySummary') return qualitySummary(warehouse);
@@ -26,7 +26,7 @@ export function revealClue(warehouse, round, previousItemIds = []) {
   if (!meta.fields.length) return { type, meta, items: [] };
   const eligible = warehouse.items.filter((candidate) => meta.fields.some((field) => !candidate.knowledge[field]));
   const targetRank = Math.min(3, round); const preferred = eligible.filter((candidate) => QUALITY_RANK[candidate.quality] >= targetRank); const pool = preferred.length ? preferred : eligible;
-  const avoidPrevious = Math.random() >= 0.08; const freshPool = avoidPrevious ? pool.filter((item) => !previousItemIds.includes(item.id)) : pool;
+  const avoidPrevious = Math.random() >= 0.08; const freshPool = avoidPrevious ? pool.filter((item) => !previousSlotIds.includes(item.slotId)) : pool;
   // 若可揭露的新目標不足兩件，回退到全倉庫，確保每次物品型情報仍會列出 2～4 件。
   const selectionPool = freshPool.length >= 2 ? freshPool : pool.length >= 2 ? pool : warehouse.items;
   const count = Math.min(selectionPool.length, 2 + Math.floor(Math.random() * 3));
@@ -35,7 +35,7 @@ export function revealClue(warehouse, round, previousItemIds = []) {
   return { type, meta, items };
 }
 
-export function revealBonusClue(warehouse, previousItemIds = []) {
+export function revealBonusClue(warehouse, previousSlotIds = []) {
   const types = ['size', 'quality', 'identity', 'qualitySummary'];
   const type = types[Math.floor(Math.random() * types.length)];
   if (type === 'qualitySummary') {
@@ -44,7 +44,7 @@ export function revealBonusClue(warehouse, previousItemIds = []) {
   }
   const meta = { ...CLUE_META[type], title: `額外情報：${CLUE_META[type].title}` };
   const eligible = warehouse.items.filter((candidate) => meta.fields.some((field) => !candidate.knowledge[field]));
-  const fresh = eligible.filter((item) => !previousItemIds.includes(item.id));
+  const fresh = eligible.filter((item) => !previousSlotIds.includes(item.slotId));
   const pool = fresh.length >= 2 ? fresh : eligible.length >= 2 ? eligible : warehouse.items;
   const count = Math.min(pool.length, 2 + Math.floor(Math.random() * 3));
   const items = shuffle(pool).slice(0, count);
@@ -66,5 +66,5 @@ export function renderClue(clue) {
   document.querySelector('#clue-title').textContent = clue.meta.title; document.querySelector('#clue-description').textContent = clue.meta.description;
   const card = document.querySelector('#clue-item-card');
   if (!clue.items.length) { card.innerHTML = `<span class="clue-empty">${clue.summary ?? '本輪請仔細觀察倉庫。'}</span>`; return; }
-  card.innerHTML = clue.items.map((item) => { const details = []; if (item.knowledge.identity) details.push(`品項：${item.name}`); if (item.knowledge.quality) details.push(`品質：${item.quality}`); if (item.knowledge.category) details.push(`種類：${item.category ?? item.series}`); if (item.knowledge.value) details.push(`價值：$${item.value.toLocaleString('en-US')}`); if (item.knowledge.size) details.push(`大小：${item.width}×${item.height} 格`); return `<div><strong>物品 #${item.id.slice(-3)}</strong><span>${details.join('　')}</span></div>`; }).join('');
+  card.innerHTML = clue.items.map((item) => { const details = []; if (item.knowledge.identity) details.push(`品項：${item.name}`); if (item.knowledge.quality) details.push(`品質：${item.quality}`); if (item.knowledge.category) details.push(`種類：${item.category ?? item.series}`); if (item.knowledge.value) details.push(`價值：$${item.value.toLocaleString('en-US')}`); if (item.knowledge.size) details.push(`大小：${item.width}×${item.height} 格`); return `<div><strong>物品 #${String(item.slotId).padStart(2, '0')}</strong><span>${details.join('　')}</span></div>`; }).join('');
 }

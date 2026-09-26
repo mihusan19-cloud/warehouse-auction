@@ -1,5 +1,5 @@
-import { generateWarehouse, renderWarehouse } from './warehouse.js?v=37';
-import { revealBonusClue, revealClue, revealInstrumentClue, renderClue } from './clue.js';
+import { generateWarehouse, renderWarehouse } from './warehouse.js?v=38';
+import { revealBonusClue, revealClue, revealInstrumentClue, renderClue } from './clue.js?v=38';
 import { createRoundController } from './round.js';
 import { bidderStatus } from './bidderView.js';
 import { createAiBidRemainingMarks, createAiBidders, makeAiBid } from '../ai/aiEngine.js';
@@ -57,7 +57,7 @@ export async function createAuction({ profile, onProfileChange }) {
     if (condition.effect === 'gemTransform' && gemCatalog.length) warehouse.items.forEach((item) => {
       if (item.width !== 1 || item.height !== 1) return;
       const gem = gemCatalog[Math.floor(Math.random() * gemCatalog.length)]; const knowledge = item.knowledge;
-      Object.assign(item, { ...gem, x: item.x, y: item.y, width: 1, height: 1, knowledge, eventGem: true });
+      Object.assign(item, { ...gem, slotId: item.slotId, x: item.x, y: item.y, width: 1, height: 1, knowledge, eventGem: true });
     });
   }
   function renderLobby(message = '') {
@@ -68,16 +68,16 @@ export async function createAuction({ profile, onProfileChange }) {
     lobby.innerHTML = `<p class="eyebrow">SOLO AUCTION PREP</p><h2>選擇本次競標策略</h2><p class="lobby-copy">會場決定風險與物品池；助理與儀器則決定你能掌握的情報。</p><h3>拍賣會場</h3><div class="prep-card-grid">${venueCards}</div><h3>鑑定助理</h3><div class="prep-card-grid assistant-grid">${assistantCards}</div><h3>鑑定商店</h3><div class="prep-card-grid instrument-shop">${shopCards}</div><p class="lobby-feedback">${message}</p><button id="start-prepared-auction" class="button button-primary" type="button">支付 ${format(venue.entryFee)} 並進入競標</button>`;
   }
   function renderInstrumentPanel() { const panel = document.querySelector('#instrument-panel'); panel.innerHTML = `<div><small>本回合儀器</small><strong>${player().confirmed ? '已鎖定出價，無法再使用儀器' : instrumentUsed ? '本回合已使用儀器' : clueRevealPending ? '情報公布中…' : '選擇一台儀器取得額外情報'}</strong></div><div>${auctionMeta.instruments.map((entry) => `<button type="button" data-use-instrument="${entry.id}" ${player().confirmed || instrumentUsed || clueRevealPending || roundClosed || !(profile.auction.instruments[entry.id] > 0) ? 'disabled' : ''}><span>${entry.icon}</span>${entry.name}<small>×${profile.auction.instruments[entry.id] ?? 0}</small></button>`).join('')}</div>`; }
-  function showIntelReveal(clue, itemIds) {
+  function showIntelReveal(clue, slotIds) {
     renderClue(clue); renderClueHistory(); renderWarehouse(warehouse, openMiniCatalog); renderValuation();
     const grid = document.querySelector('#warehouse-grid');
     grid.classList.remove('is-intel-updated'); void grid.offsetWidth; grid.classList.add('is-intel-updated');
-    const highlighted = new Set(itemIds);
-    grid.querySelectorAll('.warehouse-item').forEach((cell) => { if (highlighted.has(cell.dataset.itemId)) cell.classList.add('is-new-intel'); });
+    const highlighted = new Set(slotIds.map(String));
+    grid.querySelectorAll('.warehouse-item').forEach((cell) => { if (highlighted.has(cell.dataset.slotId)) cell.classList.add('is-new-intel'); });
     window.setTimeout(() => grid.classList.remove('is-intel-updated'), 1700);
   }
   function applyAssistantStart() { const assistant = selectedAssistant(); if (assistant.effect === 'topQuality') { const top = Math.max(...warehouse.items.map((item) => qualityRank[item.quality])); const target = warehouse.items.find((item) => qualityRank[item.quality] === top); target.knowledge.quality = true; target.knowledge.size = true; clueHistory.push({ type: 'assistant-top', meta: { title: `${assistant.name} 的開場判讀`, description: '已鎖定最高品質物品。' }, items: [target] }); } if (assistant.effect === 'topValue') { const targets = [...warehouse.items].sort((left, right) => right.value - left.value).slice(0, 2); targets.forEach((item) => { item.knowledge.value = true; }); clueHistory.push({ type: 'assistant-top-value', meta: { title: `${assistant.name} 的開場判讀`, description: '已公開本局價值最高兩件物品的固定價值。' }, items: targets }); } if (assistant.effect === 'rareCount') { const count = warehouse.items.filter((item) => qualityRank[item.quality] >= qualityRank['稀有']).length; clueHistory.push({ type: 'assistant-count', meta: { title: `${assistant.name} 的統計`, description: `本倉庫共有 ${count} 件稀有以上物品。` }, items: [], summary: `稀有以上共 ${count} 件` }); } }
-  function applyAssistantRound(round) { if (selectedAssistant().effect !== 'extraClue' || ![1, 3].includes(round)) return null; const previousIds = clueHistory.flatMap((entry) => entry.items?.map((item) => item.id) ?? []); return revealBonusClue(warehouse, previousIds); }
+  function applyAssistantRound(round) { if (selectedAssistant().effect !== 'extraClue' || ![1, 3].includes(round)) return null; const previousSlots = clueHistory.flatMap((entry) => entry.items?.map((item) => item.slotId) ?? []); return revealBonusClue(warehouse, previousSlots); }
 
   function renderBidders() {
     ensureBidders();
@@ -101,7 +101,7 @@ export async function createAuction({ profile, onProfileChange }) {
     });
   }
   function renderHistory() { const target = document.querySelector('#bid-history'); if (!history.length) { target.replaceChildren(); return; } const rows = history.map((entry) => { const bids = condition.effect === 'rankOnly' ? [...entry.bids].sort((left, right) => right.amount - left.amount).map((bid, index) => `<small>${bid.name} ${bid.amount === 0 ? '放棄' : `第 ${index + 1} 名`}</small>`) : entry.bids.map((bid) => `<small>${bid.name} ${bid.amount === 0 ? '放棄' : format(bid.amount)}</small>`); return `<div class="history-round"><span>第 ${entry.round} 回</span>${bids.join('')}</div>`; }); target.innerHTML = `<strong>${condition.effect === 'rankOnly' ? '歷史名次' : '歷史出價'}</strong>${rows.join('')}`; }
-  function renderClueHistory() { const target = document.querySelector('#clue-history'); target.replaceChildren(...clueHistory.map((clue, index) => { const entry = document.createElement('div'); const labels = clue.items?.map((item) => `#${item.id.slice(-3)}`).join('、') || clue.summary; entry.innerHTML = `<strong>第 ${index + 1} 條</strong><span>${clue.meta.title}：${labels}</span>`; return entry; })); }
+  function renderClueHistory() { const target = document.querySelector('#clue-history'); target.replaceChildren(...clueHistory.map((clue, index) => { const entry = document.createElement('div'); const labels = clue.items?.map((item) => `#${String(item.slotId).padStart(2, '0')}`).join('、') || clue.summary; entry.innerHTML = `<strong>第 ${index + 1} 條</strong><span>${clue.meta.title}：${labels}</span>`; return entry; })); }
   function openMiniCatalog(targetItem = null) {
     document.querySelector('#auction-catalog-modal')?.remove(); const rank = { '垃圾': 0, '普通': 1, '稀有': 2, '史詩': 3, '傳說': 4, '神話': 5 };
     const candidates = catalog.filter((item) => !targetItem || ((!targetItem.knowledge.identity || item.id === targetItem.id) && (!targetItem.knowledge.category || item.series === targetItem.series) && (!targetItem.knowledge.value || item.value === targetItem.value) && (!targetItem.knowledge.size || (item.width === targetItem.width && item.height === targetItem.height)) && (!targetItem.knowledge.quality || item.quality === targetItem.quality))).sort((left, right) => rank[right.quality] - rank[left.quality] || right.value - left.value);
@@ -152,13 +152,13 @@ export async function createAuction({ profile, onProfileChange }) {
   function finishExpiredRound(round) { if (disposed || ended || roundClosed || controller.getRound() !== round) return; if (!player().confirmed) { status.textContent = '時間到，未提交出價視為放棄。'; submitPlayerBid(0); } forceAiBids(round); }
   function beginRound(round) {
     clearAiTimers(); clearAiDeadline(); clearRevealTimers(); clearSettlementTimer(); clearRoundSafety(); ensureBidders(); roundClosed = false; instrumentUsed = false; clueRevealPending = false; bidders.forEach((bidder) => { bidder.lastBid = null; bidder.confirmed = false; bidder.revealed = false; bidder.dialogue = ''; });
-    const previousItemIds = clueHistory.flatMap((clueEntry) => clueEntry.items?.map((item) => item.id) ?? []);
-    const clue = round <= 5 ? revealClue(warehouse, round, previousItemIds) : { meta: { title: '平手決勝回合', description: '最高價平手，本回合出價不可低於第五回合價格。' }, items: [] };
+    const previousSlots = clueHistory.flatMap((clueEntry) => clueEntry.items?.map((item) => item.slotId) ?? []);
+    const clue = round <= 5 ? revealClue(warehouse, round, previousSlots) : { meta: { title: '平手決勝回合', description: '最高價平手，本回合出價不可低於第五回合價格。' }, items: [] };
     const announcedClues = [];
     if (clue.type !== 'none') { clueHistory.push(clue); announcedClues.push(clue); }
     if (condition.effect === 'bonusClue' && (round === 1 || round === 3)) {
-      const previousIds = clueHistory.flatMap((entry) => entry.items?.map((item) => item.id) ?? []);
-      const bonusClue = revealBonusClue(warehouse, previousIds);
+      const previousSlots = clueHistory.flatMap((entry) => entry.items?.map((item) => item.slotId) ?? []);
+      const bonusClue = revealBonusClue(warehouse, previousSlots);
       clueHistory.push(bonusClue); announcedClues.push(bonusClue);
     }
     const assistantClue = applyAssistantRound(round);
@@ -174,7 +174,7 @@ export async function createAuction({ profile, onProfileChange }) {
     const reveal = () => {
       if (disposed || ended || controller.getRound() !== round || token !== clueAnimationToken) return;
       clueRevealPending = false;
-      if (announcedClues.length) showIntelReveal(clue, announcedClues.flatMap((entry) => entry.items.map((item) => item.id)));
+      if (announcedClues.length) showIntelReveal(clue, announcedClues.flatMap((entry) => entry.items.map((item) => item.slotId)));
       else { renderClue(clue); renderClueHistory(); renderWarehouse(warehouse, openMiniCatalog); renderValuation(); }
       renderInstrumentPanel(); setBidControls(!player().confirmed, minimum);
       if (!roundClosed) status.textContent = readyMessage;
@@ -224,7 +224,7 @@ export async function createAuction({ profile, onProfileChange }) {
     playClueAnimation(instrument.name, clue.items.length).then(() => {
       if (disposed || ended || controller.getRound() !== round || token !== clueAnimationToken) return;
       clueRevealPending = false;
-      showIntelReveal(clue, clue.items.map((item) => item.id));
+      showIntelReveal(clue, clue.items.map((item) => item.slotId));
       renderInstrumentPanel(); setBidControls(!player().confirmed && !roundClosed); if (!roundClosed) status.textContent = `${instrument.name} 已完成分析。`;
     });
   }

@@ -1,6 +1,6 @@
 import { createRouter } from './router.js';
 import { loadProfile, saveProfile } from './utils/storage.js';
-import { createAuction } from './game/auction.js?v=37';
+import { createAuction } from './game/auction.js?v=38';
 import { createEncyclopedia } from './encyclopedia/encyclopedia.js';
 import { createShowroom } from './inventory/showroom.js?v=37';
 import { configureAudio } from './utils/audio.js';
