@@ -1,7 +1,7 @@
 import { generateWarehouse, renderWarehouse } from './warehouse.js';
 import { revealBonusClue, revealClue, revealInstrumentClue, renderClue } from './clue.js';
 import { createRoundController } from './round.js';
-import { createAiBidders, makeAiBid } from '../ai/aiEngine.js';
+import { createAiBidDelays, createAiBidders, makeAiBid } from '../ai/aiEngine.js';
 import { getHighestBidders, validatePlayerBid } from './bid.js';
 import { loadCatalog } from '../encyclopedia/encyclopedia.js';
 import { addCollectedItems } from '../utils/storage.js';
@@ -13,10 +13,10 @@ export async function createAuction({ profile, onProfileChange }) {
   if (!warehouseResponse.ok || !aiResponse.ok || !conditionResponse.ok || !metaResponse.ok) throw new Error('無法載入競標資料。');
   const [template, aiDatabase, conditionConfig, auctionMeta] = await Promise.all([warehouseResponse.json(), aiResponse.json(), conditionResponse.json(), metaResponse.json()]);
   const bidInput = document.querySelector('#bid-input'); const submitButton = document.querySelector('#bid-submit-button'); const nextButton = document.querySelector('#next-round-button'); const newWarehouseButton = document.querySelector('#new-warehouse-button'); const catalogButton = document.querySelector('#auction-catalog-button'); const resetButton = document.querySelector('#reset-auction-button'); const status = document.querySelector('#auction-status');
-  let warehouse; let bidders = []; let history; let clueHistory; let condition; let instrumentUsed = false; let starting = false; let aiTimers = []; let revealTimers = []; let roundSafetyTimer = null; let bidDraft = '0'; let roundClosed = false; let ended = false; let disposed = false;
+  let warehouse; let bidders = []; let history; let clueHistory; let condition; let instrumentUsed = false; let starting = false; let aiTimers = []; let revealTimers = []; let roundSafetyTimer = null; let aiDeadlineTimer = null; let bidDraft = '0'; let roundClosed = false; let ended = false; let disposed = false;
   const format = (amount) => `$${amount.toLocaleString('en-US')}`;
   function createPlayerBidder() { return { bidderId: 'player', name: profile.name, avatar: 'P', money: profile.money, lastBid: null, confirmed: false, revealed: false, dialogue: '' }; }
-  function createAiRoster() { return createAiBidders(aiDatabase).map((ai) => ({ ...ai, confirmed: false, revealed: false })); }
+  function createAiRoster() { return createAiBidders(aiDatabase, auctionMeta.assistants).map((ai) => ({ ...ai, confirmed: false, revealed: false })); }
   // 不論畫面何時重繪，競標固定由玩家與三名電腦組成；這也保護舊快取或中斷狀態。
   function ensureBidders() {
     const existingPlayer = bidders.find((bidder) => bidder?.bidderId === 'player') ?? createPlayerBidder();
@@ -32,6 +32,7 @@ export async function createAuction({ profile, onProfileChange }) {
   const clearAiTimers = () => { aiTimers.forEach((timer) => window.clearTimeout(timer)); aiTimers = []; };
   const clearRevealTimers = () => { revealTimers.forEach((timer) => window.clearTimeout(timer)); revealTimers = []; };
   const clearRoundSafety = () => { window.clearTimeout(roundSafetyTimer); roundSafetyTimer = null; };
+  const clearAiDeadline = () => { window.clearTimeout(aiDeadlineTimer); aiDeadlineTimer = null; };
   const qualityRank = { '垃圾': 0, '普通': 1, '稀有': 2, '史詩': 3, '傳說': 4, '神話': 5 };
   const selectedVenue = () => auctionMeta.venues.find((entry) => entry.id === profile.auction.selectedVenue) ?? auctionMeta.venues[0];
   const selectedAssistant = () => auctionMeta.assistants.find((entry) => entry.id === profile.auction.selectedAssistant) ?? auctionMeta.assistants[0];
@@ -42,7 +43,8 @@ export async function createAuction({ profile, onProfileChange }) {
   const effectiveValue = (item) => item.value * (condition?.effect === 'doubleQuality' && item.quality === condition.quality ? 2 : 1);
   const candidateItems = (item) => (condition?.effect === 'gemTransform' && item.eventGem ? gemCatalog : catalog).filter((candidate) => (!item.knowledge.identity || candidate.id === item.id) && (!item.knowledge.category || candidate.series === item.series) && (!item.knowledge.size || (candidate.width === item.width && candidate.height === item.height)) && (!item.knowledge.quality || candidate.quality === item.quality));
   function renderCondition() { const target = document.querySelector('#auction-condition'); target.querySelector('strong').textContent = condition.title; target.querySelector('span').textContent = condition.description; }
-  function renderValuation() { const totals = warehouse.items.reduce((result, item) => { if (item.knowledge.value) return { lower: result.lower + item.value, upper: result.upper + item.value }; const values = candidateItems(item).map(effectiveValue); return { lower: result.lower + Math.min(...values), upper: result.upper + Math.max(...values) }; }, { lower: 0, upper: 0 }); document.querySelector('#warehouse-lower-value').textContent = format(totals.lower); document.querySelector('#warehouse-value-range').textContent = `推測區間 ${format(totals.lower)} ～ ${format(totals.upper)}`; }
+  function valuationRange() { return warehouse.items.reduce((result, item) => { if (item.knowledge.value) return { lower: result.lower + item.value, upper: result.upper + item.value }; const values = candidateItems(item).map(effectiveValue); return { lower: result.lower + Math.min(...values), upper: result.upper + Math.max(...values) }; }, { lower: 0, upper: 0 }); }
+  function renderValuation() { const totals = valuationRange(); document.querySelector('#warehouse-lower-value').textContent = format(totals.lower); document.querySelector('#warehouse-value-range').textContent = `推測區間 ${format(totals.lower)} ～ ${format(totals.upper)}`; }
   function applyCondition() {
     if (condition.effect === 'qualityBroadcast') {
       const qualities = [...new Set(warehouse.items.map((item) => item.quality))]; const quality = qualities[Math.floor(Math.random() * qualities.length)];
@@ -103,7 +105,7 @@ export async function createAuction({ profile, onProfileChange }) {
     if (disposed || roundClosed || ai.confirmed || controller.getRound() !== round) return false;
     const minimum = round === 6 ? fifthBidFor(ai.bidderId) : 1;
     try {
-      makeAiBid(ai, warehouse, aiDatabase, { minimum, playerPreviousBid: previousPlayerBid() });
+      makeAiBid(ai, warehouse, aiDatabase, { minimum, playerPreviousBid: previousPlayerBid(), valuationRange: valuationRange() });
     } catch {
       // 即使單一角色資料有問題，也必須完成本回合，不能讓整個競標卡住。
       ai.lastBid = Math.min(Number(ai.money) || 100000, Math.max(minimum, 1000));
@@ -119,17 +121,12 @@ export async function createAuction({ profile, onProfileChange }) {
     ensureBidders();
     if (afterPlayerBid) clearAiTimers();
     const waitingAis = shuffleBidders(bidders.slice(1).filter((ai) => !ai.confirmed));
-    const minimumDelay = afterPlayerBid ? 450 : 5000;
-    const maximumDelay = afterPlayerBid ? 5000 : 59500;
-    waitingAis.forEach((ai) => {
-      const delay = minimumDelay + Math.floor(Math.random() * (maximumDelay - minimumDelay + 1));
-      aiTimers.push(window.setTimeout(() => confirmAiBid(ai, round), delay));
-    });
-    if (afterPlayerBid && waitingAis.length) aiTimers.push(window.setTimeout(() => forceAiBids(round), 5100));
+    createAiBidDelays(waitingAis.length, { afterPlayerBid }).forEach((delay, index) => { aiTimers.push(window.setTimeout(() => confirmAiBid(waitingAis[index], round), delay)); });
+    if (afterPlayerBid && waitingAis.length) { clearAiDeadline(); aiDeadlineTimer = window.setTimeout(() => forceAiBids(round), 4950); }
   }
   function forceAiBids(round) {
     if (disposed || roundClosed || controller.getRound() !== round) return;
-    ensureBidders(); clearAiTimers();
+    ensureBidders(); clearAiTimers(); clearAiDeadline();
     let submitted = false;
     bidders.slice(1).filter((ai) => !ai.confirmed).forEach((ai) => { submitted = commitAiBid(ai, round) || submitted; });
     if (submitted) { playSound('bid'); renderBidders(); }
@@ -137,12 +134,12 @@ export async function createAuction({ profile, onProfileChange }) {
   }
   function finishExpiredRound(round) { if (disposed || ended || roundClosed || controller.getRound() !== round) return; if (!player().confirmed) { status.textContent = '時間到，未提交出價視為放棄。'; submitPlayerBid(0); } forceAiBids(round); }
   function beginRound(round) {
-    clearAiTimers(); clearRevealTimers(); clearRoundSafety(); ensureBidders(); roundClosed = false; instrumentUsed = false; bidders.forEach((bidder) => { bidder.lastBid = null; bidder.confirmed = false; bidder.revealed = false; bidder.dialogue = ''; });
+    clearAiTimers(); clearAiDeadline(); clearRevealTimers(); clearRoundSafety(); ensureBidders(); roundClosed = false; instrumentUsed = false; bidders.forEach((bidder) => { bidder.lastBid = null; bidder.confirmed = false; bidder.revealed = false; bidder.dialogue = ''; });
     const previousItemIds = clueHistory.flatMap((clueEntry) => clueEntry.items?.map((item) => item.id) ?? []);
     const clue = round <= 5 ? revealClue(warehouse, round, previousItemIds) : { meta: { title: '平手決勝回合', description: '最高價平手，本回合出價不可低於第五回合價格。' }, items: [] };
     const announcedClues = []; if (clue.type !== 'none') { clueHistory.push(clue); announcedClues.push(clue); } if (condition.effect === 'bonusClue' && (round === 1 || round === 3)) { const previousIds = clueHistory.flatMap((entry) => entry.items?.map((item) => item.id) ?? []); const bonusClue = revealBonusClue(warehouse, previousIds); clueHistory.push(bonusClue); announcedClues.push(bonusClue); } const assistantClue = applyAssistantRound(round); if (assistantClue) { clueHistory.push(assistantClue); announcedClues.push(assistantClue); } renderClue(clue); renderClueHistory(); renderWarehouse(warehouse, openMiniCatalog); renderCondition(); renderValuation(); renderInstrumentPanel(); renderBidders(); renderHistory(); setBidControls(true, round === 6 ? fifthBidFor('player') : 0, { resetValue: true }); nextButton.hidden = true; newWarehouseButton.hidden = true; status.textContent = round === 6 ? '平手決勝：請提交不低於第五回合的出價。' : '查看情報後，提交本回合唯一出價。'; if (announcedClues.length) playClueAnimation(announcedClues.map((entry) => entry.meta.title).join(' ＋ '), announcedClues.reduce((sum, entry) => sum + entry.items.length, 0)); scheduleAiBids(round); roundSafetyTimer = window.setTimeout(() => finishExpiredRound(round), 60500);
   }
-  function completeAuction(message) { ended = true; clearAiTimers(); clearRoundSafety(); controller.stop(); setBidControls(false); status.textContent = message; newWarehouseButton.hidden = false; nextButton.hidden = true; }
+  function completeAuction(message) { ended = true; clearAiTimers(); clearAiDeadline(); clearRoundSafety(); controller.stop(); setBidControls(false); status.textContent = message; newWarehouseButton.hidden = false; nextButton.hidden = true; }
   function settleWinner(winner) {
     const warehouseValue = warehouse.items.reduce((sum, item) => sum + item.value, 0);
     if (winner.bidderId === 'player' && winner.amount > 0) { const profit = warehouseValue - winner.amount; const welfare = condition.effect === 'welfareBonus' ? Math.floor(warehouseValue * 0.3) : 0; profile.money += welfare - winner.amount; profile.stats.wins += 1; const acquired = addCollectedItems(profile, warehouse.items); onProfileChange(profile); playSound('win'); playUnboxingAnimation(warehouse.items); completeAuction(`恭喜得標！成交價 ${format(winner.amount)}，倉庫總價值 ${format(warehouseValue)}，${profit >= 0 ? '預估盈餘' : '預估虧損'} ${format(Math.abs(profit))}${welfare ? `，福利金 ${format(welfare)}` : ''}，獲得 ${acquired.length} 件收藏品。`); return; }
@@ -155,13 +152,13 @@ export async function createAuction({ profile, onProfileChange }) {
     const secondHighest = [...bids].sort((left, right) => right.amount - left.amount)[1]?.amount ?? 0;
     const earlyThresholds = { 1: 2, 2: 1.7, 3: 1.5, 4: 1.3 };
     if (earlyThresholds[round] && secondHighest > 0 && result.bidders.length === 1 && result.highestBid > secondHighest * earlyThresholds[round]) { settleWinner(result.bidders[0]); return; }
-    if (round < 5) { status.textContent = `本回合最高出價為 ${format(result.highestBid)}，即將進入下一回合。`; nextButton.hidden = true; revealTimers.push(window.setTimeout(() => { if (!disposed && !ended) controller.start(round + 1); }, 10)); return; }
+    if (round < 5) { status.textContent = `本回合最高出價為 ${format(result.highestBid)}，即將進入下一回合。`; nextButton.hidden = true; if (!disposed && !ended) controller.start(round + 1); return; }
     if (round === 5 && result.highestBid > 0 && result.bidders.length > 1) { status.textContent = `最高價 ${format(result.highestBid)} 平手，進入第六回合決勝。`; nextButton.hidden = false; nextButton.textContent = '進入平手決勝'; return; }
     if (round === 6 && result.highestBid > 0 && result.bidders.length > 1) { completeAuction(`第六回合仍以 ${format(result.highestBid)} 平手，本倉庫流標。`); return; }
     settleWinner(result.bidders[0]);
   }
   function closeRound() {
-    if (roundClosed) return; roundClosed = true; clearAiTimers(); clearRoundSafety(); controller.stop(); const bids = bidders.map((bidder) => ({ bidderId: bidder.bidderId, name: bidder.name, amount: bidder.lastBid })); history.push({ round: controller.getRound(), bids }); status.textContent = '全員已完成喊價，準備公布結果…'; renderBidders();
+    if (roundClosed) return; roundClosed = true; clearAiTimers(); clearAiDeadline(); clearRoundSafety(); controller.stop(); const bids = bidders.map((bidder) => ({ bidderId: bidder.bidderId, name: bidder.name, amount: bidder.lastBid })); history.push({ round: controller.getRound(), bids }); status.textContent = '全員已完成喊價，準備公布結果…'; renderBidders();
     bidders.forEach((bidder, index) => { revealTimers.push(window.setTimeout(() => { if (disposed || ended) return; bidder.revealed = true; playSound('bid'); renderBidders(); if (index === bidders.length - 1) { status.textContent = '所有出價已公布，正在確認結果…'; revealTimers.push(window.setTimeout(() => resolveRound(bids), 2000)); } }, 450 + index * 650)); });
   }
   function submitPlayerBid(forcedAmount) {
@@ -169,11 +166,11 @@ export async function createAuction({ profile, onProfileChange }) {
     player().lastBid = validation.amount; player().confirmed = true; player().dialogue = validation.amount === 0 ? '本回合選擇放棄。' : `已鎖定出價 ${format(validation.amount)}。`; playSound('bid'); setBidControls(false); status.textContent = '你已完成喊價。'; renderBidders(); if (!allConfirmed()) scheduleAiBids(round, true); maybeCloseRound();
   }
   const controller = createRoundController({ onChange: beginRound, onExpire: () => finishExpiredRound(controller.getRound()) });
-  async function startWarehouse() { if (starting) return; starting = true; const venue = selectedVenue(); if (profile.money < venue.minimumMoney) { renderLobby(`資產不足，需要至少 ${format(venue.minimumMoney)} 才能進入此會場。`); starting = false; return; } clearAiTimers(); clearRevealTimers(); profile.money -= venue.entryFee; const itemPool = catalog.filter((item) => qualityRank[item.quality] >= qualityRank[venue.minimumQuality]); warehouse = generateWarehouse({ ...template, warehouse: { ...template.warehouse, minimumItems: venue.minimumItems, maximumItems: venue.maximumItems }, prototypeItems: itemPool }); condition = chooseCondition(venue); applyCondition(); bidders = [createPlayerBidder(), ...createAiRoster()]; ensureBidders(); history = []; clueHistory = []; applyAssistantStart(); ended = false; profile.stats.auctions += 1; onProfileChange(profile); setMode('game'); playSound('reveal'); await playConditionDraw(conditionConfig.conditions, condition); if (!disposed && !ended) { playGameAnimation('reveal', '新倉庫開啟'); controller.start(1); } starting = false; }
+  async function startWarehouse() { if (starting) return; starting = true; const venue = selectedVenue(); if (profile.money < venue.minimumMoney) { renderLobby(`資產不足，需要至少 ${format(venue.minimumMoney)} 才能進入此會場。`); starting = false; return; } clearAiTimers(); clearAiDeadline(); clearRevealTimers(); profile.money -= venue.entryFee; const itemPool = catalog.filter((item) => qualityRank[item.quality] >= qualityRank[venue.minimumQuality]); warehouse = generateWarehouse({ ...template, warehouse: { ...template.warehouse, minimumItems: venue.minimumItems, maximumItems: venue.maximumItems }, prototypeItems: itemPool }); condition = chooseCondition(venue); applyCondition(); bidders = [createPlayerBidder(), ...createAiRoster()]; ensureBidders(); history = []; clueHistory = []; applyAssistantStart(); ended = false; profile.stats.auctions += 1; onProfileChange(profile); setMode('game'); playSound('reveal'); await playConditionDraw(conditionConfig.conditions, condition); if (!disposed && !ended) { playGameAnimation('reveal', '新倉庫開啟'); controller.start(1); } starting = false; }
   const handleSubmit = () => submitPlayerBid(); const handleNext = () => { if (roundClosed) controller.start(controller.getRound() === 5 ? 6 : controller.getRound() + 1); }; const focusBidInput = (event) => { if (!bidInput.disabled && event.target !== bidInput) bidInput.focus(); }; const syncBidDraft = () => { bidDraft = bidInput.value; };
   function useInstrument(id) { if (instrumentUsed || roundClosed || ended || !(profile.auction.instruments[id] > 0)) return; const instrument = auctionMeta.instruments.find((entry) => entry.id === id); profile.auction.instruments[id] -= 1; instrumentUsed = true; const clue = revealInstrumentClue(warehouse, instrument.effect); clueHistory.push(clue); onProfileChange(profile); renderClue(clue); renderClueHistory(); renderWarehouse(warehouse, openMiniCatalog); renderValuation(); renderInstrumentPanel(); playClueAnimation(instrument.name, clue.items.length); status.textContent = `${instrument.name} 已完成分析。`; }
   function handleLobbyClick(event) { const venueId = event.target.closest('[data-venue-id]')?.dataset.venueId; const assistantId = event.target.closest('[data-assistant-id]')?.dataset.assistantId; const buyId = event.target.closest('[data-buy-instrument]')?.dataset.buyInstrument; if (venueId) { profile.auction.selectedVenue = venueId; onProfileChange(profile); renderLobby(); } if (assistantId) { profile.auction.selectedAssistant = assistantId; onProfileChange(profile); renderLobby(); } if (buyId) { const instrument = auctionMeta.instruments.find((entry) => entry.id === buyId); if (profile.money >= instrument.cost) { profile.money -= instrument.cost; profile.auction.instruments[buyId] = (profile.auction.instruments[buyId] ?? 0) + 1; onProfileChange(profile); renderLobby(`${instrument.name} 已放入補給箱。`); } } if (event.target.closest('#start-prepared-auction')) startWarehouse(); }
-  const handleReset = () => { clearAiTimers(); clearRoundSafety(); controller.stop(); ended = true; setMode('lobby'); renderLobby(); }; const handleUseInstrument = (event) => { const id = event.target.closest('[data-use-instrument]')?.dataset.useInstrument; if (id) useInstrument(id); };
+  const handleReset = () => { clearAiTimers(); clearAiDeadline(); clearRoundSafety(); controller.stop(); ended = true; setMode('lobby'); renderLobby(); }; const handleUseInstrument = (event) => { const id = event.target.closest('[data-use-instrument]')?.dataset.useInstrument; if (id) useInstrument(id); };
   document.querySelector('.bid-input-wrap').addEventListener('pointerdown', focusBidInput); bidInput.addEventListener('input', syncBidDraft); submitButton.addEventListener('click', handleSubmit); nextButton.addEventListener('click', handleNext); newWarehouseButton.addEventListener('click', handleReset); resetButton.addEventListener('click', handleReset); catalogButton.addEventListener('click', () => openMiniCatalog()); document.querySelector('#auction-lobby').addEventListener('click', handleLobbyClick); document.querySelector('#instrument-panel').addEventListener('click', handleUseInstrument); setMode('lobby'); renderLobby();
-  return { leave: () => { if (!roundClosed && !ended && warehouse) submitPlayerBid(0); }, destroy: () => { disposed = true; clearAiTimers(); clearRoundSafety(); document.querySelector('#auction-catalog-modal')?.remove(); document.querySelector('#condition-draw-fx')?.remove(); controller.destroy(); document.querySelector('.bid-input-wrap').removeEventListener('pointerdown', focusBidInput); bidInput.removeEventListener('input', syncBidDraft); submitButton.removeEventListener('click', handleSubmit); nextButton.removeEventListener('click', handleNext); newWarehouseButton.removeEventListener('click', handleReset); resetButton.removeEventListener('click', handleReset); document.querySelector('#auction-lobby').removeEventListener('click', handleLobbyClick); document.querySelector('#instrument-panel').removeEventListener('click', handleUseInstrument); } };
+  return { leave: () => { if (!roundClosed && !ended && warehouse) submitPlayerBid(0); }, destroy: () => { disposed = true; clearAiTimers(); clearAiDeadline(); clearRoundSafety(); document.querySelector('#auction-catalog-modal')?.remove(); document.querySelector('#condition-draw-fx')?.remove(); controller.destroy(); document.querySelector('.bid-input-wrap').removeEventListener('pointerdown', focusBidInput); bidInput.removeEventListener('input', syncBidDraft); submitButton.removeEventListener('click', handleSubmit); nextButton.removeEventListener('click', handleNext); newWarehouseButton.removeEventListener('click', handleReset); resetButton.removeEventListener('click', handleReset); document.querySelector('#auction-lobby').removeEventListener('click', handleLobbyClick); document.querySelector('#instrument-panel').removeEventListener('click', handleUseInstrument); } };
 }
