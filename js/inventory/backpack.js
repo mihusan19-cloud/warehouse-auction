@@ -1,6 +1,9 @@
 export function collectionEntries(profile, catalog) {
   const catalogById = new Map(catalog.map((item) => [item.id, item]));
-  return (Array.isArray(profile.collection) ? profile.collection : []).filter((entry) => typeof entry === 'object' && catalogById.has(entry.itemId)).map((entry) => ({ ...entry, item: catalogById.get(entry.itemId) }));
+  return (Array.isArray(profile.collection) ? profile.collection : []).filter((entry) => typeof entry === 'object' && catalogById.has(entry.itemId)).map((entry) => {
+    const item = catalogById.get(entry.itemId);
+    return { ...entry, item: { ...item, value: Number.isFinite(entry.valueOverride) ? entry.valueOverride : item.value } };
+  });
 }
 
 export function setDisplayState(profile, instanceId, displayed, limit) {

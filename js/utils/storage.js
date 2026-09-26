@@ -25,7 +25,7 @@ export function saveProfile(profile) {
 
 export function addCollectedItems(profile, items) {
   const timestamp = Date.now();
-  const entries = items.map((item, index) => ({ instanceId: `${timestamp}-${index}-${Math.random().toString(36).slice(2, 7)}`, itemId: item.id, displayed: false, acquiredAt: timestamp }));
+  const entries = items.map((item, index) => ({ instanceId: `${timestamp}-${index}-${Math.random().toString(36).slice(2, 7)}`, itemId: item.id, valueOverride: item.value, displayed: false, acquiredAt: timestamp }));
   profile.collection = [...(Array.isArray(profile.collection) ? profile.collection : []), ...entries];
   return entries;
 }

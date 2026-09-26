@@ -48,7 +48,10 @@ async function initializeApp() {
   router.start();
   openFirstNameDialog(profile, (nextProfile) => { saveProfile(nextProfile); renderProfile(nextProfile); });
   const rulesButton = document.querySelector('#rules-button'); const rulesModal = document.querySelector('#rules-modal'); const rulesClose = document.querySelector('#rules-close-button');
-  rulesModal.querySelector('li:nth-child(2)').textContent = '善用公開線索、鑑定助理與儀器，判斷倉庫總價值。';
+  Promise.all([fetch('data/auctionConditions.json').then((response) => response.json()), fetch('data/auctionMeta.json').then((response) => response.json())]).then(([conditions, meta]) => {
+    const target = document.querySelector('#rules-event-probabilities');
+    target.innerHTML = meta.venues.map((venue) => `<section><strong>${venue.name}</strong>${conditions.conditions.map((event) => `<span>${event.title}<b>${event.weights?.[venue.id] ?? event.weight ?? 0}%</b></span>`).join('')}</section>`).join('');
+  }).catch(() => { document.querySelector('#rules-event-probabilities').textContent = '事件機率載入失敗。'; });
   const closeRules = () => { rulesModal.hidden = true; };
   rulesButton.addEventListener('click', () => { rulesModal.hidden = false; }); rulesClose.addEventListener('click', closeRules); rulesModal.addEventListener('click', (event) => { if (event.target === rulesModal) closeRules(); });
   if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));

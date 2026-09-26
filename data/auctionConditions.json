@@ -1,8 +1,12 @@
 {
   "conditions": [
-    {"id":"standard","weight":55,"title":"標準競標","description":"本倉庫依標準規則進行。","effect":"none"},
-    {"id":"extra-clue","weight":18,"title":"情報外洩","description":"第 1、3 回合各額外公開一條情報。","effect":"bonusClue"},
-    {"id":"sealed-records","weight":14,"title":"保密委託","description":"回合結束後只公布各競標者的出價名次。","effect":"rankOnly"},
-    {"id":"quality-audit","weight":13,"title":"品質盤點","description":"開場公開 {quality} 品質物品的位置與品質。","effect":"qualityBroadcast"}
+    {"id":"standard","title":"標準對局","description":"本倉庫依標準規則進行，沒有額外特殊效果。","effect":"none","weights":{"yard":70,"district":55,"private":35}},
+    {"id":"nightfall","title":"天黑了","description":"回合結束後只公布各競標者的出價名次，不公布金額。","effect":"rankOnly","weights":{"yard":7,"district":10,"private":13}},
+    {"id":"first-hand-intel","title":"一手情報","description":"第 1、3 回合各額外公開一條拍賣師情報。","effect":"bonusClue","weights":{"yard":8,"district":12,"private":14}},
+    {"id":"quality-audit","title":"品質盤點","description":"開場公開 {quality} 品質物品的位置與品質。","effect":"qualityBroadcast","weights":{"yard":5,"district":8,"private":9}},
+    {"id":"double-epic","title":"加倍！","description":"本倉庫所有紫色（史詩）品質藏品的價值翻倍。","effect":"doubleQuality","quality":"史詩","weights":{"yard":3,"district":5,"private":9}},
+    {"id":"double-legendary","title":"加倍！！！","description":"本倉庫所有金色（傳說）品質藏品的價值翻倍。","effect":"doubleQuality","quality":"傳說","weights":{"yard":2,"district":3,"private":6}},
+    {"id":"shining-heart","title":"閃耀之心","description":"本倉庫所有 1×1 藏品轉變為隨機寶石類藏品。","effect":"gemTransform","weights":{"yard":3,"district":5,"private":9}},
+    {"id":"welfare-bonus","title":"福利多多","description":"玩家得標時，額外獲得倉庫總價值 30% 的福利金。","effect":"welfareBonus","weights":{"yard":2,"district":2,"private":5}}
   ]
 }
