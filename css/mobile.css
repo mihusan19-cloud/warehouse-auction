@@ -5,3 +5,14 @@
 @media (max-width: 760px) { .bid-panel { grid-template-columns: 1fr 1fr; padding: 13px; }.bid-copy { grid-column: 1 / -1; }.bid-panel .button, .bid-panel .text-button { width: 100%; } }
 @media (max-width: 700px) { .prep-card-grid { grid-template-columns: 1fr; }.assistant-grid, .instrument-shop { grid-template-columns: repeat(2, minmax(0, 1fr)); }.instrument-panel { align-items: flex-start; flex-direction: column; }.instrument-panel > div:last-child { justify-content: flex-start; } }
 @media (max-width: 380px) { .brand strong { font-size: .68rem; }.brand-mark { width: 33px; height: 33px; }.wallet { font-size: .68rem; }.hero-card h1 { font-size: 2.15rem; } }
+
+@media (max-width: 620px) {
+  .topbar { margin-inline: -4px; padding-inline: 4px; }
+  .auction-header { padding-inline: 0; }
+  .round-chip { padding: 8px 10px; }
+  .panel { border-radius: 18px; }
+  .warehouse-panel, .clue-panel { padding: 14px; }
+  .warehouse-grid { border-width: 4px; }
+  .bidder-row { min-height: 52px; margin-block: 7px; }
+  .instrument-panel, .bid-panel { border-radius: 18px; }
+}

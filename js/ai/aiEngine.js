@@ -3,7 +3,12 @@ function choose(items) { return items[Math.floor(Math.random() * items.length)];
 const ASSISTANT_INSIGHT = { topQuality: 0.24, extraClue: 0.16, rareCount: 0.12, topValue: 0.3 };
 
 export function createAiBidders(database, assistants = []) { return Array.from({ length: 3 }, (_, index) => ({ ...choose(database.characters), bidderId: `ai-${index}`, money: Math.floor(randomBetween(240000, 780000)), lastBid: 0, dialogue: '', assistant: assistants.length ? choose(assistants) : { id: 'independent', effect: 'extraClue' } })); }
-export function createAiBidDelays(count, { afterPlayerBid = false } = {}) { const minimumDelay = afterPlayerBid ? 450 : 5000; const maximumDelay = afterPlayerBid ? 5000 : 59500; return Array.from({ length: count }, () => minimumDelay + Math.floor(Math.random() * (maximumDelay - minimumDelay + 1))); }
+export function createAiBidRemainingMarks(count, { currentRemaining = 60, afterPlayerBid = false } = {}) {
+  const lowest = afterPlayerBid ? Math.max(0, currentRemaining - 4) : 0;
+  const highest = afterPlayerBid ? Math.max(0, currentRemaining - 1) : 55;
+  const pool = Array.from({ length: highest - lowest + 1 }, (_, index) => lowest + index).sort(() => Math.random() - 0.5);
+  return Array.from({ length: count }, (_, index) => pool[index % pool.length]);
+}
 export function estimateKnownWarehouseValue(warehouse) { return warehouse.items.reduce((total, item) => { if (item.knowledge.value) return total + item.value; const area = item.knowledge.size ? item.width * item.height : 1; return total + area * 4500 + (item.knowledge.category ? 1200 : 0); }, 0); }
 export function estimateAiValuationRange(ai, warehouse, { lower = 0, upper = 0 } = {}) {
   const publicLower = Math.max(1, Number(lower) || estimateKnownWarehouseValue(warehouse) * 0.55);
