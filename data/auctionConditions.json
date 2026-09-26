@@ -1,0 +1,8 @@
+{
+  "conditions": [
+    {"id":"standard","weight":55,"title":"標準競標","description":"本倉庫依標準規則進行。","effect":"none"},
+    {"id":"extra-clue","weight":18,"title":"情報外洩","description":"第 1、3 回合各額外公開一條情報。","effect":"bonusClue"},
+    {"id":"sealed-records","weight":14,"title":"保密委託","description":"回合結束後只公布各競標者的出價名次。","effect":"rankOnly"},
+    {"id":"quality-audit","weight":13,"title":"品質盤點","description":"開場公開 {quality} 品質物品的位置與品質。","effect":"qualityBroadcast"}
+  ]
+}

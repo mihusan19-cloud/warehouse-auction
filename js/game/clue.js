@@ -35,6 +35,19 @@ export function revealClue(warehouse, round, previousItemIds = []) {
   return { type, meta, items };
 }
 
+export function revealBonusClue(warehouse, previousItemIds = []) {
+  const types = ['size', 'category', 'valueAndSize'];
+  const type = types[Math.floor(Math.random() * types.length)];
+  const meta = { ...CLUE_META[type], title: `額外情報：${CLUE_META[type].title}` };
+  const eligible = warehouse.items.filter((candidate) => meta.fields.some((field) => !candidate.knowledge[field]));
+  const fresh = eligible.filter((item) => !previousItemIds.includes(item.id));
+  const pool = fresh.length >= 2 ? fresh : eligible;
+  const count = Math.min(pool.length, 2 + Math.floor(Math.random() * 3));
+  const items = shuffle(pool).slice(0, count);
+  items.forEach((item) => meta.fields.forEach((field) => { item.knowledge[field] = true; }));
+  return { type: `bonus-${type}`, meta, items };
+}
+
 export function renderClue(clue) {
   document.querySelector('#clue-title').textContent = clue.meta.title; document.querySelector('#clue-description').textContent = clue.meta.description;
   const card = document.querySelector('#clue-item-card');
