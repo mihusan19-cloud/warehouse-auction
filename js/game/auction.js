@@ -96,23 +96,45 @@ export async function createAuction({ profile, onProfileChange }) {
     const modal = document.createElement('div'); modal.id = 'auction-catalog-modal'; modal.className = 'auction-catalog-modal'; modal.innerHTML = `<section><button class="catalog-close" type="button" aria-label="關閉小圖鑑">×</button><p class="eyebrow">${targetItem ? 'POSSIBLE MATCHES' : 'AUCTION CATALOG'}</p><h3>${targetItem ? `可能物品（${candidates.length}）` : '小圖鑑'}</h3><p>${targetItem ? '依已公開情報篩選，品質由高至低。' : '完整物品目錄，品質由高至低。'}</p><div class="auction-catalog-list">${candidates.slice(0, 80).map((item) => `<article class="mini-item quality-${item.quality}"><span>${item.image}</span><div><small>${item.quality} · ${item.series}</small><strong>${item.name}</strong><em>${format(item.value)}　${item.width}×${item.height} 格</em></div></article>`).join('') || '<p>沒有符合目前情報的候選物品。</p>'}</div></section>`; modal.addEventListener('click', (event) => { if (event.target === modal || event.target.closest('.catalog-close')) modal.remove(); }); document.body.append(modal);
   }
   function setBidControls(enabled, minimum = 0, { resetValue = false } = {}) { bidInput.disabled = !enabled; submitButton.disabled = !enabled; if (resetValue) { bidDraft = String(minimum || 0); bidInput.value = bidDraft; } document.querySelector('#bid-minimum').textContent = minimum ? `本回合最低出價：${format(minimum)}` : '可輸入 0 放棄競標'; }
-  function allConfirmed() { return bidders.every((bidder) => bidder.confirmed); }
+  const shuffleBidders = (entries) => [...entries].sort(() => Math.random() - 0.5);
+  function allConfirmed() { ensureBidders(); return bidders.every((bidder) => bidder.confirmed); }
   function maybeCloseRound() { if (!roundClosed && allConfirmed()) closeRound(); }
+  function commitAiBid(ai, round) {
+    if (disposed || roundClosed || ai.confirmed || controller.getRound() !== round) return false;
+    const minimum = round === 6 ? fifthBidFor(ai.bidderId) : 1;
+    try {
+      makeAiBid(ai, warehouse, aiDatabase, { minimum, playerPreviousBid: previousPlayerBid() });
+    } catch {
+      // 即使單一角色資料有問題，也必須完成本回合，不能讓整個競標卡住。
+      ai.lastBid = Math.min(Number(ai.money) || 100000, Math.max(minimum, 1000));
+    }
+    ai.confirmed = true;
+    return true;
+  }
   function confirmAiBid(ai, round) {
-    if (disposed || roundClosed || ai.confirmed || controller.getRound() !== round) return;
-    makeAiBid(ai, warehouse, aiDatabase, { minimum: round === 6 ? fifthBidFor(ai.bidderId) : 1, playerPreviousBid: previousPlayerBid() }); ai.confirmed = true; playSound('bid'); renderBidders(); maybeCloseRound();
+    if (!commitAiBid(ai, round)) return;
+    playSound('bid'); renderBidders(); maybeCloseRound();
   }
   function scheduleAiBids(round, afterPlayerBid = false) {
     ensureBidders();
     if (afterPlayerBid) clearAiTimers();
-    const waitingAis = bidders.slice(1).filter((ai) => !ai.confirmed);
-    const delays = waitingAis.map((_, index) => afterPlayerBid
-      ? 600 + Math.floor(Math.random() * (4400 - index * 350))
-      : 5000 + Math.floor(Math.random() * 55001));
-    waitingAis.forEach((ai, index) => { aiTimers.push(window.setTimeout(() => confirmAiBid(ai, round), Math.max(350, delays[index]))); });
+    const waitingAis = shuffleBidders(bidders.slice(1).filter((ai) => !ai.confirmed));
+    const minimumDelay = afterPlayerBid ? 450 : 5000;
+    const maximumDelay = afterPlayerBid ? 5000 : 59500;
+    waitingAis.forEach((ai) => {
+      const delay = minimumDelay + Math.floor(Math.random() * (maximumDelay - minimumDelay + 1));
+      aiTimers.push(window.setTimeout(() => confirmAiBid(ai, round), delay));
+    });
     if (afterPlayerBid && waitingAis.length) aiTimers.push(window.setTimeout(() => forceAiBids(round), 5100));
   }
-  function forceAiBids(round) { ensureBidders(); clearAiTimers(); bidders.slice(1).filter((ai) => !ai.confirmed).forEach((ai) => confirmAiBid(ai, round)); }
+  function forceAiBids(round) {
+    if (disposed || roundClosed || controller.getRound() !== round) return;
+    ensureBidders(); clearAiTimers();
+    let submitted = false;
+    bidders.slice(1).filter((ai) => !ai.confirmed).forEach((ai) => { submitted = commitAiBid(ai, round) || submitted; });
+    if (submitted) { playSound('bid'); renderBidders(); }
+    maybeCloseRound();
+  }
   function finishExpiredRound(round) { if (disposed || ended || roundClosed || controller.getRound() !== round) return; if (!player().confirmed) { status.textContent = '時間到，未提交出價視為放棄。'; submitPlayerBid(0); } forceAiBids(round); }
   function beginRound(round) {
     clearAiTimers(); clearRevealTimers(); clearRoundSafety(); ensureBidders(); roundClosed = false; instrumentUsed = false; bidders.forEach((bidder) => { bidder.lastBid = null; bidder.confirmed = false; bidder.revealed = false; bidder.dialogue = ''; });
