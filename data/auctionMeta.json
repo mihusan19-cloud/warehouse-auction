@@ -10,7 +10,7 @@
     {"id":"statistician","name":"梅森・統計師","icon":"Σ","description":"開場公開稀有以上物品的總件數。","effect":"rareCount"},
     {"id":"broker","name":"芮娜・經紀人","icon":"◇","description":"開場公開本局價值最高 2 件物品的固定價值。","effect":"topValue"},
     {"id":"spaceAnalyst","name":"岑岳・空間分析師","icon":"▥","description":"開場公布倉庫物品實際佔用的總格數，不指出位置。","effect":"totalCells"},
-    {"id":"riskAppraiser","name":"璃央・風險估價師","icon":"◫","description":"第 2 回合公布倉庫總價值所在的 $100,000 區間。","effect":"valueRange","rangeStep":100000},
+    {"id":"riskAppraiser","name":"璃央・風險估價師","icon":"◫","description":"第 3 回合提供倉庫總價值的範圍。","effect":"valueRange","rangeStep":100000},
     {"id":"blindSpot","name":"凱特・盲點調查員","icon":"◎","description":"第 3 回合額外揭露 1 件尚未完全掌握的物品品質與大小。","effect":"blindSpot"}
   ],
   "instruments": [

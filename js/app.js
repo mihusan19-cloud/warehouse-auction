@@ -1,10 +1,10 @@
 import { createRouter } from './router.js';
-import { loadProfile, saveProfile } from './utils/storage.js?v=39';
-import { createAuction } from './game/auction.js?v=39';
+import { loadProfile, saveProfile } from './utils/storage.js?v=40';
+import { createAuction } from './game/auction.js?v=40';
 import { createEncyclopedia } from './encyclopedia/encyclopedia.js';
 import { createShowroom } from './inventory/showroom.js?v=37';
 import { configureAudio } from './utils/audio.js';
-import { createSettings, openFirstNameDialog } from './settings.js?v=37';
+import { createSettings, openFirstNameDialog } from './settings.js?v=40';
 import { createAchievements } from './achievements.js';
 
 function formatMoney(value) {
@@ -48,7 +48,7 @@ async function initializeApp() {
   router.start();
   openFirstNameDialog(profile, (nextProfile) => { saveProfile(nextProfile); renderProfile(nextProfile); });
   const rulesButton = document.querySelector('#rules-button'); const rulesModal = document.querySelector('#rules-modal'); const rulesClose = document.querySelector('#rules-close-button');
-  Promise.all([fetch('data/auctionConditions.json').then((response) => response.json()), fetch('data/auctionMeta.json').then((response) => response.json())]).then(([conditions, meta]) => {
+  Promise.all([fetch('data/auctionConditions.json').then((response) => response.json()), fetch('data/auctionMeta.json?v=40').then((response) => response.json())]).then(([conditions, meta]) => {
     const target = document.querySelector('#rules-event-probabilities');
     target.innerHTML = meta.venues.map((venue) => `<section><strong>${venue.name}</strong>${conditions.conditions.map((event) => `<span>${event.title}<b>${event.weights?.[venue.id] ?? event.weight ?? 0}%</b></span>`).join('')}</section>`).join('');
   }).catch(() => { document.querySelector('#rules-event-probabilities').textContent = '事件機率載入失敗。'; });

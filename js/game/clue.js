@@ -17,10 +17,12 @@ export function makeTotalCellsClue(warehouse, title, type = 'assistant-totalCell
   return { type, factKey: 'totalCells', meta: { title, description: summary }, items: [], summary };
 }
 
-export function makeValueRangeClue(warehouse, title, step = 100000) {
+export function makeValueRangeClue(warehouse, title, step = 100000, random = Math.random) {
   const width = Math.max(1, Math.floor(Number(step) || 100000));
   const total = warehouse.items.reduce((sum, item) => sum + item.value, 0);
-  const lower = Math.floor(total / width) * width;
+  const maxOffset = Math.min(total, width - 1);
+  const offset = Math.floor(Math.min(0.9999999999999999, Math.max(0, random())) * (maxOffset + 1));
+  const lower = total - offset;
   const upper = lower + width - 1;
   const summary = `本倉庫總價值介於 $${lower.toLocaleString('en-US')}～$${upper.toLocaleString('en-US')}。`;
   return { type: 'assistant-valueRange', meta: { title, description: summary }, items: [], summary, lower, upper };

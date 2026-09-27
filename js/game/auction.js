@@ -1,16 +1,16 @@
 import { generateWarehouse, renderWarehouse } from './warehouse.js?v=38';
-import { instrumentCanReveal, makeTotalCellsClue, makeValueRangeClue, revealBlindSpotClue, revealBonusClue, revealClue, revealInstrumentClue, revealTargetedClue, renderClue } from './clue.js?v=39';
+import { instrumentCanReveal, makeTotalCellsClue, makeValueRangeClue, revealBlindSpotClue, revealBonusClue, revealClue, revealInstrumentClue, revealTargetedClue, renderClue } from './clue.js?v=40';
 import { createRoundController } from './round.js';
 import { bidderStatus } from './bidderView.js';
-import { createAiBidRemainingMarks, createAiBidders, makeAiBid } from '../ai/aiEngine.js?v=39';
-import { getHighestBidders, validatePlayerBid } from './bid.js';
+import { createAiBidRemainingMarks, createAiBidders, makeAiBid } from '../ai/aiEngine.js?v=40';
+import { awardLossReward, calculateSettlement, getHighestBidders, validatePlayerBid } from './bid.js?v=40';
 import { loadCatalog } from '../encyclopedia/encyclopedia.js';
 import { addCollectedItems } from '../utils/storage.js';
 import { playSound } from '../utils/audio.js';
-import { playClueAnimation, playConditionDraw, playGameAnimation, playUnboxingAnimation } from './animation.js?v=37';
+import { playClueAnimation, playConditionDraw, playGameAnimation, playUnboxingAnimation } from './animation.js?v=40';
 
 export async function createAuction({ profile, onProfileChange }) {
-  const [warehouseResponse, aiResponse, conditionResponse, metaResponse, catalog] = await Promise.all([fetch('data/warehouseTemplates.json'), fetch('data/ai.json'), fetch('data/auctionConditions.json'), fetch('data/auctionMeta.json?v=39'), loadCatalog()]);
+  const [warehouseResponse, aiResponse, conditionResponse, metaResponse, catalog] = await Promise.all([fetch('data/warehouseTemplates.json'), fetch('data/ai.json'), fetch('data/auctionConditions.json'), fetch('data/auctionMeta.json?v=40'), loadCatalog()]);
   if (!warehouseResponse.ok || !aiResponse.ok || !conditionResponse.ok || !metaResponse.ok) throw new Error('無法載入競標資料。');
   const [template, aiDatabase, conditionConfig, auctionMeta] = await Promise.all([warehouseResponse.json(), aiResponse.json(), conditionResponse.json(), metaResponse.json()]);
   const bidInput = document.querySelector('#bid-input'); const submitButton = document.querySelector('#bid-submit-button'); const nextButton = document.querySelector('#next-round-button'); const newWarehouseButton = document.querySelector('#new-warehouse-button'); const catalogButton = document.querySelector('#auction-catalog-button'); const resetButton = document.querySelector('#reset-auction-button'); const status = document.querySelector('#auction-status');
@@ -106,7 +106,7 @@ export async function createAuction({ profile, onProfileChange }) {
       const previousSlots = clueHistory.flatMap((entry) => entry.items?.map((item) => item.slotId) ?? []);
       return revealBonusClue(warehouse, previousSlots);
     }
-    if (assistant.effect === 'valueRange' && round === 2) return makeValueRangeClue(warehouse, `${assistant.name} 的風險估價`, assistant.rangeStep);
+    if (assistant.effect === 'valueRange' && round === 3) return makeValueRangeClue(warehouse, `${assistant.name} 的風險估價`, assistant.rangeStep);
     if (assistant.effect === 'blindSpot' && round === 3) return revealBlindSpotClue(warehouse, `${assistant.name} 的盲點調查`);
     return null;
   }
@@ -183,7 +183,7 @@ export async function createAuction({ profile, onProfileChange }) {
     if (disposed || roundClosed || ai.confirmed || controller.getRound() !== round) return false;
     const minimum = round === 6 ? fifthBidFor(ai.bidderId) : 1;
     try {
-      makeAiBid(ai, warehouse, aiDatabase, { minimum, playerPreviousBid: previousPlayerBid(), valuationRange: valuationRange(publicKnowledge) });
+      makeAiBid(ai, warehouse, aiDatabase, { minimum, playerPreviousBid: previousPlayerBid(), valuationRange: valuationRange(publicKnowledge), round });
     } catch {
       // 即使單一角色資料有問題，也必須完成本回合，不能讓整個競標卡住。
       ai.lastBid = Math.min(Number(ai.money) || 100000, Math.max(minimum, 1000));
@@ -254,10 +254,23 @@ export async function createAuction({ profile, onProfileChange }) {
   function completeAuction(message) { ended = true; clearAiTimers(); clearAiDeadline(); clearSettlementTimer(); clearRoundSafety(); controller.stop(); setBidControls(false); status.textContent = message; newWarehouseButton.hidden = false; nextButton.hidden = true; }
   function settleWinner(winner) {
     const warehouseValue = warehouse.items.reduce((sum, item) => sum + item.value, 0);
-    if (winner.bidderId === 'player' && winner.amount > 0) { const profit = warehouseValue - winner.amount; const welfare = condition.effect === 'welfareBonus' ? Math.floor(warehouseValue * 0.3) : 0; profile.money += welfare - winner.amount; profile.stats.wins += 1; const acquired = addCollectedItems(profile, warehouse.items); onProfileChange(profile); playSound('win'); playUnboxingAnimation(warehouse.items); completeAuction(`恭喜得標！成交價 ${format(winner.amount)}，倉庫總價值 ${format(warehouseValue)}，${profit >= 0 ? '預估盈餘' : '預估虧損'} ${format(Math.abs(profit))}${welfare ? `，福利金 ${format(welfare)}` : ''}，獲得 ${acquired.length} 件收藏品。`); return; }
-    if (winner.amount > 0) playUnboxingAnimation(warehouse.items, { title: `${winner.name} 得標開箱`, description: `成交價 ${format(winner.amount)}，現在揭曉本倉庫的全部 ${warehouse.items.length} 件藏品。` });
-    if (winner.amount > warehouseValue) { completeAuction(`${winner.name} 以 ${format(winner.amount)} 得標，但高於實際價值。你成功避開接盤。`); return; }
-    completeAuction(winner.amount === 0 ? '所有競標者皆放棄，本倉庫流標。' : `${winner.name} 以 ${format(winner.amount)} 得標。`);
+    if (winner.amount === 0) { completeAuction('所有競標者皆放棄，本倉庫流標。'); return; }
+    const settlement = calculateSettlement(winner.amount, warehouseValue);
+    awardLossReward(profile, bidders, winner.bidderId, settlement.lossReward);
+    if (winner.bidderId === 'player') {
+      const welfare = condition.effect === 'welfareBonus' ? Math.floor(warehouseValue * 0.3) : 0;
+      profile.money += welfare - winner.amount; profile.stats.wins += 1;
+      const acquired = addCollectedItems(profile, warehouse.items);
+      onProfileChange(profile); playSound('win');
+      playUnboxingAnimation(warehouse.items, { title: '你的倉庫開箱', description: `獲得 ${acquired.length} 件收藏品。${welfare ? `另有福利金 ${format(welfare)}。` : ''}${settlement.lossReward ? '本局虧損回饋已發給其他競標者。' : ''}`, settlement });
+      completeAuction(`恭喜得標！最高喊價 ${format(winner.amount)}，實際價值 ${format(warehouseValue)}，${settlement.profit < 0 ? '虧損' : '利潤'} ${format(Math.abs(settlement.profit))}${welfare ? `，福利金 ${format(welfare)}` : ''}${settlement.lossReward ? `，每位其他競標者獲得 ${format(settlement.lossReward)}` : ''}。`);
+      return;
+    }
+    const winningAi = bidders.find((bidder) => bidder.bidderId === winner.bidderId);
+    if (winningAi) winningAi.money = Math.max(0, winningAi.money - winner.amount);
+    if (settlement.lossReward) onProfileChange(profile);
+    playUnboxingAnimation(warehouse.items, { title: `${winner.name} 得標開箱`, description: settlement.lossReward ? `得標者虧損，你獲得 ${format(settlement.lossReward)} 回饋。` : `現在揭曉本倉庫的全部 ${warehouse.items.length} 件藏品。`, settlement });
+    completeAuction(`${winner.name} 得標！最高喊價 ${format(winner.amount)}，實際價值 ${format(warehouseValue)}，${settlement.profit < 0 ? '虧損' : '利潤'} ${format(Math.abs(settlement.profit))}${settlement.lossReward ? `，你獲得 ${format(settlement.lossReward)} 回饋` : ''}。`);
   }
   function resolveRound(bids) {
     const result = getHighestBidders(bids); renderHistory(); const round = controller.getRound();

@@ -5,6 +5,7 @@ import {
   instrumentCanReveal, makeTotalCellsClue, makeValueRangeClue,
   revealBlindSpotClue, revealInstrumentClue, revealTargetedClue, totalOccupiedCells
 } from '../js/game/clue.js';
+import { estimateAiValuationRange } from '../js/ai/aiEngine.js';
 
 function warehouseFixture() {
   return { items: [
@@ -17,7 +18,17 @@ function warehouseFixture() {
 test('selected assistants and instruments are present with purchasable prices', () => {
   const metadata = JSON.parse(readFileSync(new URL('../data/auctionMeta.json', import.meta.url), 'utf8'));
   assert.deepEqual(['spaceAnalyst', 'riskAppraiser', 'blindSpot'].map((id) => metadata.assistants.find((assistant) => assistant.id === id)?.effect), ['totalCells', 'valueRange', 'blindSpot']);
+  assert.match(metadata.assistants.find((assistant) => assistant.id === 'riskAppraiser').description, /第 3 回合提供倉庫總價值的範圍/);
   assert.deepEqual(['totalCellsMeter', 'identityDecoder', 'targetScanner'].map((id) => metadata.instruments.find((instrument) => instrument.id === id)?.cost), [2500, 18000, 12000]);
+});
+
+test('risk assistant estimate activates for computer bidders in round three', () => {
+  const ai = { assistant: { effect: 'valueRange' } };
+  const warehouse = warehouseFixture();
+  const publicRange = { lower: 1000, upper: 2000 };
+  const second = estimateAiValuationRange(ai, warehouse, publicRange, 2);
+  const third = estimateAiValuationRange(ai, warehouse, publicRange, 3);
+  assert.ok((third.lower + third.upper) > (second.lower + second.upper));
 });
 
 test('space assistant and meter tell the true total without revealing item positions', () => {
@@ -33,11 +44,19 @@ test('space assistant and meter tell the true total without revealing item posit
 
 test('risk assistant interval always contains the actual warehouse value', () => {
   const warehouse = warehouseFixture();
+  warehouse.items[2].value = 145000;
   const total = warehouse.items.reduce((sum, item) => sum + item.value, 0);
-  const clue = makeValueRangeClue(warehouse, '風險估價', 100000);
-  assert.ok(clue.lower <= total && total <= clue.upper);
-  assert.equal(clue.upper - clue.lower + 1, 100000);
-  assert.equal(clue.items.length, 0);
+  const lowEdge = makeValueRangeClue(warehouse, '風險估價', 100000, () => 0);
+  const highEdge = makeValueRangeClue(warehouse, '風險估價', 100000, () => 0.9999999999999999);
+  const middle = makeValueRangeClue(warehouse, '風險估價', 100000, () => 0.5);
+  assert.equal(lowEdge.lower, total);
+  assert.equal(highEdge.upper, total);
+  for (const clue of [lowEdge, highEdge, middle]) {
+    assert.ok(clue.lower <= total && total <= clue.upper);
+    assert.equal(clue.upper - clue.lower + 1, 100000);
+    assert.equal(clue.items.length, 0);
+  }
+  assert.notEqual(lowEdge.lower, middle.lower);
 });
 
 test('blind-spot assistant and targeted scanner affect only their chosen slot', () => {
