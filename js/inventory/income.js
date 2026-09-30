@@ -6,10 +6,12 @@ export function hourlyDisplayIncome(entries, qualityMap, displayMultiplier) {
 
 export function previewDisplayIncome(profile, entries, qualityMap, config, now = Date.now()) {
   const cap = Math.max(0, Number(config.maxOfflineHours) || 168);
-  const accruedHours = Math.min(cap, Math.max(0, Number(profile.showroomAccruedHours) || 0));
-  const previous = Number(profile.showroomLastIncomeAt) || now;
-  const elapsed = Math.min(cap - accruedHours, Math.max(0, now - previous) / HOUR_MS);
+  const hasDisplayedItems = entries.some((entry) => entry.displayed);
   const pending = Math.max(0, Number(profile.showroomPendingIncome) || 0);
+  // 舊存檔可能在空展示館累積了時數；沒有展品與收益時清除這種無效時數。
+  const accruedHours = !hasDisplayedItems && pending === 0 ? 0 : Math.min(cap, Math.max(0, Number(profile.showroomAccruedHours) || 0));
+  const previous = Number(profile.showroomLastIncomeAt) || now;
+  const elapsed = hasDisplayedItems ? Math.min(cap - accruedHours, Math.max(0, now - previous) / HOUR_MS) : 0;
   const total = pending + hourlyDisplayIncome(entries, qualityMap, config.displayMultiplier) * elapsed;
   return { amount: Math.floor(total), total, elapsedHours: accruedHours + elapsed, cap };
 }

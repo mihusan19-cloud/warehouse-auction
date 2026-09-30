@@ -32,13 +32,42 @@ test('changing displayed items keeps earnings earned at the old rate', () => {
   assert.equal(profile.money, 100);
 });
 
-test('the 168-hour cap spans multiple visits and can restart without earnings', () => {
-  const profile = { money: 0, showroomLastIncomeAt: hour };
-  accrueDisplayIncome(profile, [], qualities, config, hour * 101);
-  const preview = previewDisplayIncome(profile, [], qualities, config, hour * 201);
-  assert.equal(preview.elapsedHours, 168);
-  assert.equal(preview.amount, 0);
-  claimDisplayIncome(profile, [], qualities, config, hour * 201);
+test('an empty showroom does not start its timer, including legacy empty saves', () => {
+  const profile = { money: 0, showroomLastIncomeAt: hour, showroomAccruedHours: 168, showroomPendingIncome: 0 };
+  assert.equal(previewDisplayIncome(profile, [], qualities, config, hour * 201).elapsedHours, 0);
+  accrueDisplayIncome(profile, [], qualities, config, hour * 201);
   assert.equal(profile.showroomAccruedHours, 0);
-  assert.equal(previewDisplayIncome(profile, displayed, qualities, config, hour * 202).amount, 10);
+  const started = previewDisplayIncome(profile, displayed, qualities, config, hour * 202);
+  assert.equal(started.elapsedHours, 1);
+  assert.equal(started.amount, 10);
+});
+
+test('removing the final exhibit pauses time without losing earned income', () => {
+  const profile = { money: 0, showroomLastIncomeAt: hour };
+  accrueDisplayIncome(profile, displayed, qualities, config, hour * 11);
+  const paused = previewDisplayIncome(profile, [], qualities, config, hour * 101);
+  assert.equal(paused.elapsedHours, 10);
+  assert.equal(paused.amount, 100);
+  accrueDisplayIncome(profile, [], qualities, config, hour * 101);
+  const resumed = previewDisplayIncome(profile, displayed, qualities, config, hour * 103);
+  assert.equal(resumed.elapsedHours, 12);
+  assert.equal(resumed.amount, 120);
+  assert.equal(claimDisplayIncome(profile, displayed, qualities, config, hour * 103).amount, 120);
+  assert.equal(profile.money, 120);
+});
+
+test('claiming while paused resets the cycle; the 168-hour cap uses display time only', () => {
+  const profile = { money: 0, showroomLastIncomeAt: hour };
+  accrueDisplayIncome(profile, displayed, qualities, config, hour * 101);
+  accrueDisplayIncome(profile, [], qualities, config, hour * 300);
+  assert.equal(profile.showroomAccruedHours, 100);
+  const capped = previewDisplayIncome(profile, displayed, qualities, config, hour * 400);
+  assert.equal(capped.elapsedHours, 168);
+  assert.equal(capped.amount, 1680);
+  accrueDisplayIncome(profile, displayed, qualities, config, hour * 400);
+  assert.equal(claimDisplayIncome(profile, [], qualities, config, hour * 500).amount, 1680);
+  assert.equal(profile.showroomAccruedHours, 0);
+  assert.equal(previewDisplayIncome(profile, [], qualities, config, hour * 600).elapsedHours, 0);
+  accrueDisplayIncome(profile, [], qualities, config, hour * 600);
+  assert.equal(previewDisplayIncome(profile, displayed, qualities, config, hour * 601).amount, 10);
 });

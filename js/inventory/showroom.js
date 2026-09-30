@@ -1,7 +1,7 @@
 import { loadCatalog } from '../encyclopedia/encyclopedia.js';
 import { collectionEntries, setDisplayState } from './backpack.js';
 import { sellCollectionItems } from './sell.js';
-import { accrueDisplayIncome, claimDisplayIncome, hourlyDisplayIncome, previewDisplayIncome } from './income.js?v=37';
+import { accrueDisplayIncome, claimDisplayIncome, hourlyDisplayIncome, previewDisplayIncome } from './income.js?v=41';
 import { playSound } from '../utils/audio.js';
 
 const money = (value) => `$${Math.floor(value).toLocaleString('en-US')}`;
@@ -19,9 +19,11 @@ export async function createShowroom({ profile, onProfileChange }) {
   accrueDisplayIncome(profile, collectionEntries(profile, catalog), qualityMap, config);
   onProfileChange(profile);
   function renderIncome() {
-    const income = previewDisplayIncome(profile, collectionEntries(profile, catalog), qualityMap, config);
+    const entries = collectionEntries(profile, catalog);
+    const income = previewDisplayIncome(profile, entries, qualityMap, config);
+    const isPaused = !entries.some((entry) => entry.displayed);
     document.querySelector('#pending-income').textContent = money(income.amount);
-    document.querySelector('#income-hours').textContent = `已累積 ${income.elapsedHours.toFixed(1)} / ${income.cap} 小時`;
+    document.querySelector('#income-hours').textContent = `已累積 ${income.elapsedHours.toFixed(1)} / ${income.cap} 小時${isPaused ? ' · 無展品，計時暫停' : ''}`;
     claimButton.disabled = income.amount <= 0 && income.elapsedHours < income.cap;
     claimButton.textContent = income.amount > 0 ? '領取收益' : income.elapsedHours >= income.cap ? '重新開始累積' : '領取收益';
   }

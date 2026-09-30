@@ -2,7 +2,7 @@ import { createRouter } from './router.js';
 import { loadProfile, saveProfile } from './utils/storage.js?v=40';
 import { createAuction } from './game/auction.js?v=40';
 import { createEncyclopedia } from './encyclopedia/encyclopedia.js';
-import { createShowroom } from './inventory/showroom.js?v=37';
+import { createShowroom } from './inventory/showroom.js?v=41';
 import { configureAudio } from './utils/audio.js';
 import { createSettings, openFirstNameDialog } from './settings.js?v=40';
 import { createAchievements } from './achievements.js';
